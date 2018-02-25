@@ -32,12 +32,15 @@ def parseImages(filenames, directory, bin_dict, bin_size):
 	channel_L = []
 	channel_ab = []
 	labels = []
-
+	bins_ab = []
+	count = 0
+	
 	for file in filenames:
 		batch = unpickle(file)
 		raw_images = batch["data"]
 		batch_labels = batch["labels"]
 		m, nx = raw_images.shape
+		ab2bins = np.vectorize(lambda a, b: bin_dict.index([a // bin_size * bin_size, b // bin_size * bin_size]))
 
 		if small:
 			m = SIZE
@@ -48,24 +51,26 @@ def parseImages(filenames, directory, bin_dict, bin_size):
 			L = Lab[:, :, 0]
 			L = L.reshape(L.shape[0], L.shape[1], 1)
 			ab = Lab[:, :, 1:3]
+			bins = ab2bins(ab[:, :, 0], ab[:, :, 1])
+			bins = bins.reshape(bins.shape[0], bins.shape[1], 1)
 			channel_L.append(L)
 			channel_ab.append(ab)
 			labels.append(batch_labels[i])
+			bins_ab.append(bins)
+
+			count += 1
+			print count
 
 	labels = np.array(labels).reshape(len(labels), -1)
 	channel_ab = np.array(channel_ab)
-	
-	ab2bins = np.vectorize(lambda a, b: bin_dict.index([a // bin_size * bin_size, b // bin_size * bin_size]))
-	bins = ab2bins(channel_ab[:, :, :, 0], channel_ab[:, :, :, 1])
-	bins = bins.reshape(bins.shape[0], bins.shape[1], bins.shape[2], 1)
 
 	if not(os.path.exists(directory)):
 		os.makedirs(directory)
 	np.save(directory + "L", channel_L)
 	np.save(directory + "ab", channel_ab)
 	np.save(directory + "labels", labels)
-	np.save(directory + "bins", bins)
-	return channel_L, channel_ab, labels, bins
+	np.save(directory + "bins", bins_ab)
+	return channel_L, channel_ab, labels, bins_ab
 	
 bin_size = 10
 bin_dict = np.load(DATA_BINS).tolist()
