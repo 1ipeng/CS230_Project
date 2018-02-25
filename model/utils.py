@@ -2,8 +2,9 @@
 
 import json
 import logging
-
-
+import numpy as np
+from skimage import color
+import matplotlib.pyplot as plt
 class Params():
     """Class that loads hyperparameters from a json file.
 
@@ -75,3 +76,31 @@ def save_dict_to_json(d, json_path):
         # We need to convert the values to float for json (it doesn't accept np.array, np.float, )
         d = {k: float(v) for k, v in d.items()}
         json.dump(d, f, indent=4)
+
+DATA_BINS = "../data/bins_529.npy"
+bin_dict = np.load(DATA_BINS).tolist()
+bins = np.random.randint(0, 50, (2,3,3,1))
+
+def bins2ab(bins):
+    m, h, w, c = bins.shape
+    ab = np.zeros((m, h, w, 2))
+    for i in range(m):
+        for j in range(h):
+            for k in range(w):
+                ab[i, j, k, :] = bin_dict[bins[i, j, k, 0]]
+    return ab
+
+def ab2bins(ab):
+    vfun = np.vectorize(lambda a, b: bin_dict.index([a // bin_size * bin_size, b // bin_size * bin_size]))
+    bins = vfun(ab[:, :, 0], ab[:, :, 1])
+    bins = bins.reshape(bins.shape[0], bins.shape[1], 1)
+    return bins
+
+def plotLabImage(L, ab, position):
+    image = np.concatenate((L, ab), axis = -1)
+    r, w, i = position
+    plt.subplot(r, w, i)
+    plt.imshow(color.lab2rgb(image))
+
+
+
