@@ -286,7 +286,6 @@ if args.train:
 if args.predict:
 	save_path = os.path.join(model_dir, 'last_weights')
 	predict_bins, predict_ab, predict_cost = model.predict(dev_L[0:5], dev_bins[0:5], dev_ab[0:5], params, save_path)
-	print predict_cost
 	count = 0
 	for i in range(5):
 	    count = count + 1
@@ -296,7 +295,6 @@ if args.predict:
 
 	plt.figure()
 	predict_bins, predict_ab, predict_cost = model.predict(train_L[0:5], train_bins[0:5], train_ab[0:5], params, save_path)
-	print predict_cost
 	count = 0
 	for i in range(5):
 	    count = count + 1
