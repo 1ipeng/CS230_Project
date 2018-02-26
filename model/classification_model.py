@@ -5,7 +5,12 @@ import json
 from utils import Params, bins2ab, plotLabImage, random_mini_batches
 import os
 from scipy.misc import imsave
+import argparse
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--restore", help="restore training from last epoch",
+                    action="store_true")
+args = parser.parse_args()
 # Classification model
 
 # Define architecture
@@ -131,7 +136,7 @@ class model:
             
             if is_training:
                 costs = np.load(os.path.join(restore_from, "costs.npy")).tolist()
-                dev_costs = costs = np.load(os.path.join(restore_from, "dev_costs.npy")).tolist()
+                dev_costs = np.load(os.path.join(restore_from, "dev_costs.npy")).tolist()
 
         return begin_at_epoch, costs, dev_costs
 
@@ -240,16 +245,20 @@ dev_L = data_L[dev_index]
 dev_ab = data_ab[dev_index]
 dev_bins = ab_bins[dev_index]
 
-model_dir = "./weights"
+model_dir = "./weights_classification"
 save_path = os.path.join(model_dir, 'last_weights')
 
 # Build model
 model = model(params, classification_8layers)
 
 # Train and pridict
-model.train(train_L, train_bins, dev_L, dev_bins, model_dir)
-# predict_bins, predict_ab, predict_cost = model.predict(dev_L, dev_bins, dev_ab, params, save_path)
+if args.restore:
+    model.train(train_L, train_bins, dev_L, dev_bins, model_dir, save_path)
+else:
+    model.train(train_L, train_bins, dev_L, dev_bins, model_dir)
 
+
+# predict_bins, predict_ab, predict_cost = model.predict(dev_L, dev_bins, dev_ab, params, save_path)
 '''
 RGB1 = plotLabImage(X_test[0], predict_ab[0], (2, 1, 1))
 RGB2 = plotLabImage(X_test[0], data_ab[0], (2, 1, 2))
