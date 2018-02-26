@@ -192,7 +192,7 @@ class model:
                 	best_dev_cost = dev_cost
                 	best_save_path = os.path.join(model_dir, 'best_weights', 'after-epoch')
                 	last_saver.save(sess, best_save_path, global_step = begin_at_epoch + epoch + 1)
-                	if not(os.path.exists(os.path.join(model_dir,'last_weights'))):
+                	if not (os.path.exists(os.path.join(model_dir,'last_weights'))):
                         os.makedirs(os.path.join(model_dir,'last_weights'))
                     np.save(os.path.join(model_dir,'last_weights', "bes_dev_cost"), best_dev_cost)
 
