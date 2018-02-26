@@ -6,11 +6,17 @@ from utils import Params, bins2ab, plotLabImage, random_mini_batches
 import os
 from scipy.misc import imsave
 
+# Regression model
+
+# Define architecture
 class classification_8layers:
     def __init__(self, data_L, params, is_training=True):
+        # data_L: input placeholder
+        # params: hyperparameters
+
         self.params = params
         self.is_training = is_training
-        self.activation = {}
+        self.activation = {} # save activation for debugging
 
         input_L = self.normalize(data_L)
         conv_out = self.convlayers(input_L)
@@ -82,15 +88,18 @@ class classification_8layers:
         return out
 
     def fc_layers(self, out):
-        # 1x1 conv -> softmax
+        # 1x1 conv -> sigmoid
         with tf.variable_scope('fc_1'):
             out = tf.layers.conv2d(out, 2, 1, padding='same') 
         out = tf.sigmoid(out)
         assert out.get_shape().as_list() == [None, params.image_size, params.image_size, 2]
         return out
 
+# Define model
 class model:
     def __init__(self, params, arch):
+        # params: hyperparameter
+        # arch: Network architeture 
         self.params = params
         self.arch = arch
         self.X, self.Y = self.create_placeholders(self.params.image_size, self.params.image_size, 1, 2)
@@ -106,12 +115,14 @@ class model:
         return arch
 
     def compute_cost(self, logits, labels):
+        # L2 loss
         flat_labels = tf.contrib.layers.flatten(labels)
         flat_logits = tf.contrib.layers.flatten(logits)
         cost = tf.reduce_mean(tf.norm((flat_labels - flat_logits), axis = 1, keepdims=True) ** 2)
         return cost
 
     def restoreSession(self, last_saver, sess, restore_from, is_training):
+        # Restore sess, cost from last training
         begin_at_epoch = 0
         costs = []
         dev_costs = []
@@ -129,6 +140,8 @@ class model:
 
     def train(self, X_train, Y_train, X_dev, Y_dev, model_dir, restore_from = None, print_cost = True):
         m = X_train.shape[0]
+
+        # Normalize output to [0, 1]
         Y_train = (Y_train + 128) / 255.
         Y_dev = (Y_dev + 128) / 255.
 
@@ -159,9 +172,12 @@ class model:
                     (minibatch_X, minibatch_Y) = minibatch
                     _ , temp_cost = sess.run([optimizer, cost], feed_dict={self.X: minibatch_X, self.Y: minibatch_Y})
                     
+                     # compute training cost
                     minibatch_cost += temp_cost / num_minibatches
                 
                 costs.append(minibatch_cost) 
+
+                # compute dev cost
                 dev_cost = self.evaluate(X_dev, Y_dev, self.params, sess)
                 dev_costs.append(dev_cost)
 
@@ -169,21 +185,23 @@ class model:
                     print ("Cost after epoch %i: %f" % (begin_at_epoch + epoch, minibatch_cost))          
                     print ("dev_Cost after epoch %i: %f" % (begin_at_epoch + epoch, dev_cost))   
 
+            # Save sess and costs
             last_save_path = os.path.join(model_dir, 'last_weights', 'after-epoch')
             last_saver.save(sess, last_save_path, global_step = begin_at_epoch + epoch + 1)
             np.save(os.path.join(model_dir,'last_weights', "costs"), costs)
             np.save(os.path.join(model_dir,'last_weights', "dev_costs"), dev_costs)  
 
     def evaluate(self, X_test, Y_test, params, sess):
+        # Evaluate the dev set. Used inside a session.
         m = X_test.shape[0]
         arch = self.build_architecture(is_training = False)
-        
         logits = arch.logits
         cost = self.compute_cost(arch.logits, self.Y)                
         predict_cost = sess.run(cost, feed_dict={self.X: X_test, self.Y: Y_test})
         return predict_cost
 
     def predict(self, X_test, data_ab, params, restore_from):
+        # Make prediction. Used outside a session.
         m = X_test.shape[0]
         Y_test = (data_ab + 128) / 255.
 
@@ -197,27 +215,31 @@ class model:
             sess.run(init)
 
             self.restoreSession(last_saver, sess, restore_from, False)
-                    
+            
+            '''
             predict_cost, predict_ab = sess.run([cost, logits], feed_dict={self.X: X_test, self.Y: Y_test})
             predict_ab = predict_ab * 255. - 128
-            
             predict_img = plotLabImage(X_test[0], predict_ab[0], (2, 1, 1))
             orig_img = plotLabImage(X_test[0], data_ab[0], (2, 1, 2))
             plt.show()
+            '''
             
         return predict_ab, predict_cost
-                
+
+# Load data               
 DIR_TRAIN = "../data/lab_result/100_train_lab/"
 data_L = np.load(DIR_TRAIN + "L.npy")
 data_ab = np.load(DIR_TRAIN + "ab.npy")
 ab_bins = np.load(DIR_TRAIN + "bins.npy")
 params = Params("../experiments/base_model/params.json")
 
+# Shuffle data
 train_size = 100
 dev_size = 30
 m = data_L.shape[0]
 permutation = list(np.random.permutation(m))
 
+# Build toy dataset
 train_L = data_L[0:train_size]
 train_ab = data_ab[0:train_size]
 train_bins = ab_bins[0:train_size]
@@ -228,10 +250,12 @@ dev_bins = ab_bins[train_size:train_size + dev_size]
 model_dir = "./weights"
 save_path = os.path.join(model_dir, 'last_weights')
 
+# Build model
 model = model(params, classification_8layers)
-model.train(train_L[0:1], train_ab[0:1], train_L[0:1], train_ab[0:1], model_dir)
 
-model.predict(train_L, train_ab, params, save_path)
+# Train and pridict
+model.train(train_L, train_ab, dev_L, dev_ab, model_dir)
+# model.predict(train_L[1:2], train_ab[1:2], params, save_path)
 
 '''
 pipeline = m.build_pipeline(True, data_L, ab_bins, params)
