@@ -9,6 +9,7 @@ import os
 from scipy.misc import imsave
 import argparse
 import os
+import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--restore", help="restore training from last epoch",
