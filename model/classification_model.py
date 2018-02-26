@@ -6,6 +6,7 @@ from utils import Params, bins2ab, plotLabImage, random_mini_batches
 import os
 from scipy.misc import imsave
 import argparse
+import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--restore", help="restore training from last epoch",
@@ -128,6 +129,7 @@ class model:
         begin_at_epoch = 0
         costs = []
         dev_costs = []
+        best_dev_cost = float('inf')
         if restore_from is not None:
             if os.path.isdir(restore_from):
                 sess_path = tf.train.latest_checkpoint(restore_from)
@@ -137,8 +139,9 @@ class model:
             if is_training:
                 costs = np.load(os.path.join(restore_from, "costs.npy")).tolist()
                 dev_costs = np.load(os.path.join(restore_from, "dev_costs.npy")).tolist()
+                best_dev_cost = np.load(os.path.join(restore_from,"best_dev_cost.npy"))[0]
 
-        return begin_at_epoch, costs, dev_costs
+        return begin_at_epoch, costs, dev_costs, best_dev_cost
 
     def train(self, X_train, Y_train, X_dev, Y_dev, model_dir, restore_from = None, print_cost = True):
         m = X_train.shape[0]
@@ -152,14 +155,15 @@ class model:
             optimizer = tf.train.AdamOptimizer(self.params.learning_rate).minimize(cost)
 
         last_saver = tf.train.Saver(max_to_keep = 1)
+        best_saver = tf.train.Saver(max_to_keep = 1)
         with tf.Session() as sess:
             init = tf.global_variables_initializer()
             sess.run(init)
 
-            begin_at_epoch, costs, dev_costs = self.restoreSession(last_saver, sess, restore_from, is_training = True)
+            begin_at_epoch, costs, dev_costs, best_dev_cost = self.restoreSession(last_saver, sess, restore_from, is_training = True)
             
             for epoch in range(self.params.num_epochs):
-                print ("epoch: ", epoch)
+                print ("epoch: ", epoch + 1)
                 minibatch_cost = 0.
                 num_minibatches = (m + self.params.batch_size - 1) // self.params.batch_size
 
@@ -180,8 +184,17 @@ class model:
                 dev_costs.append(dev_cost)
 
                 if print_cost == True and epoch % 1 == 0:
-                    print ("Cost after epoch %i: %f" % (begin_at_epoch + epoch, minibatch_cost))          
-                    print ("dev_Cost after epoch %i: %f" % (begin_at_epoch + epoch, dev_cost))   
+                    print ("Cost after epoch %i: %f" % (begin_at_epoch + epoch + 1, minibatch_cost))          
+                    print ("dev_Cost after epoch %i: %f" % (begin_at_epoch + epoch + 1, dev_cost))   
+
+                # Save best sess
+                if dev_cost < best_dev_cost:
+                	best_dev_cost = dev_cost
+                	best_save_path = os.path.join(model_dir, 'best_weights', 'after-epoch')
+                	last_saver.save(sess, best_save_path, global_step = begin_at_epoch + epoch + 1)
+                	if not(os.path.exists(os.path.join(model_dir,'last_weights'))):
+						os.makedirs(os.path.join(model_dir,'last_weights'))
+                	np.save(os.path.join(model_dir,'last_weights', "bes_dev_cost"), best_dev_cost)
 
             # Save sess and costs
             last_save_path = os.path.join(model_dir, 'last_weights', 'after-epoch')
@@ -230,9 +243,10 @@ ab_bins = np.load(DIR_TRAIN + "bins.npy")
 params = Params("../experiments/base_model/params.json")
 
 # Shuffle data
-train_size = 100
-dev_size = 30
+train_size = 1
+dev_size = 1
 m = data_L.shape[0]
+np.random.seed(10)
 permutation = list(np.random.permutation(m))
 
 train_index = permutation[0:train_size]
