@@ -271,6 +271,9 @@ if args.restore:
     model.train(train_L, train_bins, dev_L, dev_bins, model_dir, save_path)
 else:
     model.train(train_L, train_bins, dev_L, dev_bins, model_dir)
+
+
+    
 '''
 
 predict_bins, predict_ab, predict_cost = model.predict(train_L[0:1], train_bins[0:1], train_ab[0:1], params, save_path)
@@ -281,4 +284,4 @@ RGB2 = plotLabImage(X_test[0], data_ab[0], (2, 1, 2))
 # imsave("../rgb2.png", RGB2)
 
 plt.show()
-
+'''
