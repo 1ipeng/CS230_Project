@@ -243,8 +243,8 @@ ab_bins = np.load(DIR_TRAIN + "bins.npy")
 params = Params("../experiments/base_model/params.json")
 
 # Shuffle data
-train_size = 1
-dev_size = 1
+train_size = 5000
+dev_size = 1000
 m = data_L.shape[0]
 np.random.seed(10)
 permutation = list(np.random.permutation(m))
