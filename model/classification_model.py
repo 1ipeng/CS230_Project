@@ -189,10 +189,10 @@ class model:
 
                 # Save best sess
                 if dev_cost < best_dev_cost:
-                	best_dev_cost = dev_cost
-                	best_save_path = os.path.join(model_dir, 'best_weights', 'after-epoch')
-                	last_saver.save(sess, best_save_path, global_step = begin_at_epoch + epoch + 1)
-                	if not (os.path.exists(os.path.join(model_dir,'last_weights'))):
+                    best_dev_cost = dev_cost
+                    best_save_path = os.path.join(model_dir, 'best_weights', 'after-epoch')
+                    best_saver.save(sess, best_save_path, global_step = begin_at_epoch + epoch + 1)
+                    if not (os.path.exists(os.path.join(model_dir,'last_weights'))):
                         os.makedirs(os.path.join(model_dir,'last_weights'))
                     np.save(os.path.join(model_dir,'last_weights', "bes_dev_cost"), best_dev_cost)
 
@@ -266,21 +266,19 @@ save_path = os.path.join(model_dir, 'last_weights')
 model = model(params, classification_8layers)
 
 # Train and pridict
+'''
 if args.restore:
     model.train(train_L, train_bins, dev_L, dev_bins, model_dir, save_path)
 else:
     model.train(train_L, train_bins, dev_L, dev_bins, model_dir)
-
-
-# predict_bins, predict_ab, predict_cost = model.predict(dev_L, dev_bins, dev_ab, params, save_path)
 '''
+
+predict_bins, predict_ab, predict_cost = model.predict(train_L[0:1], train_bins[0:1], train_ab[0:1], params, save_path)
+
 RGB1 = plotLabImage(X_test[0], predict_ab[0], (2, 1, 1))
 RGB2 = plotLabImage(X_test[0], data_ab[0], (2, 1, 2))
-imsave("../rgb1.png", RGB1)
-imsave("../rgb2.png", RGB2)
+# imsave("../rgb1.png", RGB1)
+# imsave("../rgb2.png", RGB2)
 
-plotLabImage(X_test[0], predict_ab[1], (4, 1, 3))
-plotLabImage(X_test[0], data_ab[1], (4, 1, 4))
 plt.show()
-'''
 
