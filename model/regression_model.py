@@ -121,8 +121,8 @@ class model:
 
     def compute_cost(self, logits, labels):
         # L2 loss
-        flat_labels = tf.contrib.layers.flatten(labels)
-        flat_logits = tf.contrib.layers.flatten(logits)
+        flat_labels = tf.reshape(labels, [-1, 32 * 32 * 2])
+        flat_logits = tf.reshape(logits, [-1, 32 * 32 * 2])
         cost = tf.reduce_mean(tf.norm((flat_labels - flat_logits), axis = 1, keepdims=True) ** 2)
         return cost
 
@@ -166,7 +166,7 @@ class model:
             begin_at_epoch, costs, dev_costs = self.restoreSession(last_saver, sess, restore_from, is_training = True)
             
             for epoch in range(self.params.num_epochs):
-                print("epoch: ", epoch)
+                print("epoch: ", epoch + 1)
                 minibatch_cost = 0.
                 num_minibatches = (m + self.params.batch_size - 1) // self.params.batch_size
 
@@ -187,8 +187,8 @@ class model:
                 dev_costs.append(dev_cost)
 
                 if print_cost == True and epoch % 1 == 0:
-                    print ("Cost after epoch %i: %f" % (begin_at_epoch + epoch, minibatch_cost))          
-                    print ("dev_Cost after epoch %i: %f" % (begin_at_epoch + epoch, dev_cost))   
+                    print ("Cost after epoch %i: %f" % (begin_at_epoch + epoch + 1, minibatch_cost))          
+                    print ("dev_Cost after epoch %i: %f" % (begin_at_epoch + epoch + 1, dev_cost))   
 
             # Save sess and costs
             last_save_path = os.path.join(model_dir, 'last_weights', 'after-epoch')
@@ -235,6 +235,7 @@ params = Params("../experiments/base_model/params.json")
 train_size = 100
 dev_size = 30
 m = data_L.shape[0]
+np.random.seed(10)
 permutation = list(np.random.permutation(m))
 
 train_index = permutation[0:train_size]
