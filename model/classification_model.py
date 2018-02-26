@@ -266,7 +266,7 @@ save_path = os.path.join(model_dir, 'last_weights')
 model = model(params, classification_8layers)
 
 # Train and pridict
-'''
+
 if args.restore:
     model.train(train_L, train_bins, dev_L, dev_bins, model_dir, save_path)
 else:
