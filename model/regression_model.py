@@ -8,11 +8,19 @@ from utils import Params, bins2ab, plotLabImage, random_mini_batches
 import os
 from scipy.misc import imsave
 import argparse
+import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--restore", help="restore training from last epoch",
                     action="store_true")
+parser.add_argument("--train", help="train model",
+                    action="store_true")
+parser.add_argument("--predict", help="show predict results",
+                    action="store_true")
 args = parser.parse_args()
+
+if len(sys.argv) < 2:
+    parser.print_usage()
 
 # Define architecture
 class regression_8layers:
@@ -260,23 +268,31 @@ save_path = os.path.join(model_dir, 'last_weights')
 model = model(params, regression_8layers)
 
 # Train and pridict
-if args.restore:
-    model.train(train_L, train_ab, dev_L, dev_ab, model_dir, save_path)
-else:
-    model.train(train_L, train_ab, dev_L, dev_ab, model_dir)
+if args.train:
+    if args.restore:
+        model.train(train_L, train_ab, dev_L, dev_ab, model_dir, save_path)
+    else:
+        model.train(train_L, train_ab, dev_L, dev_ab, model_dir)
 
-
-'''
 # Show result
-predict_ab, predict_cost = model.predict(train_L[0:5], train_ab[0:5], params, save_path)
+if args.predict:
+    predict_ab, predict_cost = model.predict(dev_L[0:5], dev_ab[0:5], params, save_path)
+    count = 0
+    for i in range(5):
+        count = count + 1
+        orig_img = plotLabImage(dev_L[i], dev_ab[i], (5, 2, count))
+        count = count + 1
+        predict_img = plotLabImage(dev_L[i], predict_ab[i], (5, 2, count))
+    plt.figure()
 
-count = 0
-for i in range(5):
-    count = count + 1
-    orig_img = plotLabImage(train_L[i], train_ab[i], (5, 2, count))
-    count = count + 1
-    predict_img = plotLabImage(train_L[i], predict_ab[i], (5, 2, count))
-plt.show()
-'''
+    predict_ab, predict_cost = model.predict(train_L[0:5], train_ab[0:5], params, save_path)
+    count = 0
+    for i in range(5):
+        count = count + 1
+        orig_img = plotLabImage(train_L[i], train_ab[i], (5, 2, count))
+        count = count + 1
+        predict_img = plotLabImage(train_L[i], predict_ab[i], (5, 2, count))
+    plt.show()
+
 
 
