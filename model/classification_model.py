@@ -243,8 +243,8 @@ ab_bins = np.load(DIR_TRAIN + "bins.npy")
 params = Params("../experiments/base_model/params.json")
 
 # Shuffle data
-train_size = 5000
-dev_size = 1000
+train_size = 100
+dev_size = 30
 m = data_L.shape[0]
 np.random.seed(10)
 permutation = list(np.random.permutation(m))
@@ -273,7 +273,7 @@ else:
     model.train(train_L, train_bins, dev_L, dev_bins, model_dir)
 
 
-    
+
 '''
 
 predict_bins, predict_ab, predict_cost = model.predict(train_L[0:1], train_bins[0:1], train_ab[0:1], params, save_path)
