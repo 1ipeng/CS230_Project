@@ -233,7 +233,7 @@ model_dir = "./weights"
 save_path = os.path.join(model_dir, 'last_weights')
 
 model = model(params, classification_8layers)
-model.train(train_L, train_bins, train_L, train_bins, model_dir)
+model.train(train_L, train_bins, dev_L, dev_bins, model_dir)
 
 # model.predict(train_L, train_bins, train_ab, params, save_path)
 
