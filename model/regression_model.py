@@ -215,15 +215,8 @@ class model:
             sess.run(init)
 
             self.restoreSession(last_saver, sess, restore_from, False)
-            
-            '''
             predict_cost, predict_ab = sess.run([cost, logits], feed_dict={self.X: X_test, self.Y: Y_test})
-            predict_ab = predict_ab * 255. - 128
-            predict_img = plotLabImage(X_test[0], predict_ab[0], (2, 1, 1))
-            orig_img = plotLabImage(X_test[0], data_ab[0], (2, 1, 2))
-            plt.show()
-            '''
-            
+            predict_ab = predict_ab * 255. - 128            
         return predict_ab, predict_cost
 
 # Load data               
@@ -239,15 +232,17 @@ dev_size = 30
 m = data_L.shape[0]
 permutation = list(np.random.permutation(m))
 
+train_index = permutation[0:train_size]
+dev_index = permutation[train_size:train_size + dev_size]
 # Build toy dataset
-train_L = data_L[0:train_size]
-train_ab = data_ab[0:train_size]
-train_bins = ab_bins[0:train_size]
-dev_L = data_L[train_size:train_size + dev_size]
-dev_ab = data_ab[train_size:train_size + dev_size]
-dev_bins = ab_bins[train_size:train_size + dev_size]
+train_L = data_L[train_index]
+train_ab = data_ab[train_index]
+train_bins = ab_bins[train_index]
+dev_L = data_L[dev_index]
+dev_ab = data_ab[dev_index]
+dev_bins = ab_bins[dev_index]
 
-model_dir = "./weights"
+model_dir = "./weights2"
 save_path = os.path.join(model_dir, 'last_weights')
 
 # Build model
@@ -255,14 +250,19 @@ model = model(params, classification_8layers)
 
 # Train and pridict
 model.train(train_L, train_ab, dev_L, dev_ab, model_dir)
-# model.predict(train_L[1:2], train_ab[1:2], params, save_path)
 
 '''
-pipeline = m.build_pipeline(True, data_L, ab_bins, params)
-data_L = tf.placeholder(tf.float32, [None, params.image_size, params.image_size, 1])
-arch = classification_8layers(data_L, params)
-
+costs = []
+count = 0
+for i in range(1):
+    count = count + 1
+    predict_ab, predict_cost = model.predict(dev_L[i:i+1], dev_ab[i:i+1], params, save_path)
+    predict_img = plotLabImage(dev_L[i], predict_ab[0], (4, 5, count))
+    count = count + 1
+    orig_img = plotLabImage(dev_L[i], dev_ab[i], (4, 5, count))
+plt.show()
 '''
+
 
 
 

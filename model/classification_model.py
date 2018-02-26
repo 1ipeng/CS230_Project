@@ -213,19 +213,7 @@ class model:
             predict_bins = predict_bins.reshape(predict_bins.shape[0], predict_bins.shape[1], predict_bins.shape[2], 1)
             predict_ab = bins2ab(predict_bins)
             
-            '''
-            RGB1 = plotLabImage(X_test[0], predict_ab[0], (2, 1, 1))
-            RGB2 = plotLabImage(X_test[0], data_ab[0], (2, 1, 2))
-            imsave("../rgb1.png", RGB1)
-            imsave("../rgb2.png", RGB2)
-
-            plotLabImage(X_test[0], predict_ab[1], (4, 1, 3))
-            plotLabImage(X_test[0], data_ab[1], (4, 1, 4))
-            plt.show()
-            '''
-            
         return predict_bins, predict_ab, predict_cost
-
 
 # Experiment on a toy dataset with train size 100, dev size 30
 
@@ -242,13 +230,15 @@ dev_size = 30
 m = data_L.shape[0]
 permutation = list(np.random.permutation(m))
 
+train_index = permutation[0:train_size]
+dev_index = permutation[train_size:train_size + dev_size]
 # Build toy dataset
-train_L = data_L[0:train_size]
-train_ab = data_ab[0:train_size]
-train_bins = ab_bins[0:train_size]
-dev_L = data_L[train_size:train_size + dev_size]
-dev_ab = data_ab[train_size:train_size + dev_size]
-dev_bins = ab_bins[train_size:train_size + dev_size]
+train_L = data_L[train_index]
+train_ab = data_ab[train_index]
+train_bins = ab_bins[train_index]
+dev_L = data_L[dev_index]
+dev_ab = data_ab[dev_index]
+dev_bins = ab_bins[dev_index]
 
 model_dir = "./weights"
 save_path = os.path.join(model_dir, 'last_weights')
@@ -258,10 +248,16 @@ model = model(params, classification_8layers)
 
 # Train and pridict
 model.train(train_L, train_bins, dev_L, dev_bins, model_dir)
-model.predict(train_L, train_bins, train_ab, params, save_path)
+# predict_bins, predict_ab, predict_cost = model.predict(dev_L, dev_bins, dev_ab, params, save_path)
 
+'''
+RGB1 = plotLabImage(X_test[0], predict_ab[0], (2, 1, 1))
+RGB2 = plotLabImage(X_test[0], data_ab[0], (2, 1, 2))
+imsave("../rgb1.png", RGB1)
+imsave("../rgb2.png", RGB2)
 
-
-
-
+plotLabImage(X_test[0], predict_ab[1], (4, 1, 3))
+plotLabImage(X_test[0], data_ab[1], (4, 1, 4))
+plt.show()
+'''
 
