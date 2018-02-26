@@ -1,3 +1,5 @@
+# Regression model
+
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,10 +13,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--restore", help="restore training from last epoch",
                     action="store_true")
 args = parser.parse_args()
-# Regression model
 
 # Define architecture
-class classification_8layers:
+class regression_8layers:
     def __init__(self, data_L, params, is_training=True):
         # data_L: input placeholder
         # params: hyperparameters
@@ -224,6 +225,8 @@ class model:
             predict_ab = predict_ab * 255. - 128            
         return predict_ab, predict_cost
 
+# Experiment on a toy dataset with train size 100, dev size 30
+
 # Load data               
 DIR_TRAIN = "../data/lab_result/100_train_lab/"
 data_L = np.load(DIR_TRAIN + "L.npy")
@@ -240,6 +243,7 @@ permutation = list(np.random.permutation(m))
 
 train_index = permutation[0:train_size]
 dev_index = permutation[train_size:train_size + dev_size]
+
 # Build toy dataset
 train_L = data_L[train_index]
 train_ab = data_ab[train_index]
@@ -251,8 +255,9 @@ dev_bins = ab_bins[dev_index]
 model_dir = "./weights_regression"
 save_path = os.path.join(model_dir, 'last_weights')
 
+
 # Build model
-model = model(params, classification_8layers)
+model = model(params, regression_8layers)
 
 # Train and pridict
 if args.restore:
@@ -260,18 +265,18 @@ if args.restore:
 else:
     model.train(train_L, train_ab, dev_L, dev_ab, model_dir)
 
+
 '''
-costs = []
+# Show result
+predict_ab, predict_cost = model.predict(train_L[0:5], train_ab[0:5], params, save_path)
+
 count = 0
-for i in range(1):
+for i in range(5):
     count = count + 1
-    predict_ab, predict_cost = model.predict(dev_L[i:i+1], dev_ab[i:i+1], params, save_path)
-    predict_img = plotLabImage(dev_L[i], predict_ab[0], (4, 5, count))
+    orig_img = plotLabImage(train_L[i], train_ab[i], (5, 2, count))
     count = count + 1
-    orig_img = plotLabImage(dev_L[i], dev_ab[i], (4, 5, count))
+    predict_img = plotLabImage(train_L[i], predict_ab[i], (5, 2, count))
 plt.show()
 '''
-
-
 
 

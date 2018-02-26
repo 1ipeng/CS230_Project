@@ -1,3 +1,5 @@
+# Classification model
+
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,7 +14,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--restore", help="restore training from last epoch",
                     action="store_true")
 args = parser.parse_args()
-# Classification model
 
 # Define architecture
 class classification_8layers:
@@ -233,6 +234,7 @@ class model:
             
         return predict_bins, predict_ab, predict_cost
 
+
 # Experiment on a toy dataset with train size 100, dev size 30
 
 # Load data
@@ -248,9 +250,9 @@ dev_size = 30
 m = data_L.shape[0]
 np.random.seed(10)
 permutation = list(np.random.permutation(m))
-
 train_index = permutation[0:train_size]
 dev_index = permutation[train_size:train_size + dev_size]
+
 # Build toy dataset
 train_L = data_L[train_index]
 train_ab = data_ab[train_index]
@@ -265,23 +267,23 @@ save_path = os.path.join(model_dir, 'last_weights')
 # Build model
 model = model(params, classification_8layers)
 
-# Train and pridict
-
+# Train and predict
 if args.restore:
     model.train(train_L, train_bins, dev_L, dev_bins, model_dir, save_path)
 else:
     model.train(train_L, train_bins, dev_L, dev_bins, model_dir)
 
 
-
 '''
-
-predict_bins, predict_ab, predict_cost = model.predict(train_L[0:1], train_bins[0:1], train_ab[0:1], params, save_path)
-
-RGB1 = plotLabImage(X_test[0], predict_ab[0], (2, 1, 1))
-RGB2 = plotLabImage(X_test[0], data_ab[0], (2, 1, 2))
-# imsave("../rgb1.png", RGB1)
-# imsave("../rgb2.png", RGB2)
-
+# Show result
+predict_bins, predict_ab, predict_cost = model.predict(dev_L[0:5], dev_bins[0:5], dev_ab[0:5], params, save_path)
+print predict_cost
+count = 0
+for i in range(5):
+    count = count + 1
+    orig_img = plotLabImage(dev_L[i], dev_ab[i], (5, 2, count))
+    count = count + 1
+    predict_img = plotLabImage(dev_L[i], predict_ab[i], (5, 2, count))
 plt.show()
 '''
+
