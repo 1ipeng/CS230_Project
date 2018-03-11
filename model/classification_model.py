@@ -172,7 +172,7 @@ class model:
 
                     # Print result
                     if (count_batch % 10) == 0:
-                        print("temp_cost:", temp_cost)
+                        print("count_batch",count_batch,"temp_cost:", temp_cost)
                     count_batch += 1
                 
                 costs.append(minibatch_cost) 
