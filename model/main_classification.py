@@ -21,13 +21,13 @@ if len(sys.argv) < 2:
 
 # Load data
 # 50,000/5,000/5,000
-DIR_TRAIN = "../data/lab_result/100_train_lab/"
+DIR_TRAIN = "../data/lab_result/train_lab/"
 train_L = np.load(DIR_TRAIN + "L.npy")
 train_ab = np.load(DIR_TRAIN + "ab.npy")
 train_bins = np.load(DIR_TRAIN + "bins.npy")
 params = Params("../experiments/base_model/params.json")
 
-DIR_TEST = "../data/lab_result/100_test_lab/"
+DIR_TEST = "../data/lab_result/test_lab/"
 test_dev_L = np.load(DIR_TEST + "L.npy")
 test_dev_ab = np.load(DIR_TEST + "ab.npy")
 test_dev_bins = np.load(DIR_TEST + "bins.npy")
