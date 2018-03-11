@@ -59,7 +59,7 @@ def parseImages(filenames, directory, bin_dict, bin_size):
 			bins_ab.append(bins)
 
 			count += 1
-			print count
+			print(count)
 
 	labels = np.array(labels).reshape(len(labels), -1)
 	channel_ab = np.array(channel_ab)
