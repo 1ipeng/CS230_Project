@@ -155,6 +155,7 @@ class model:
             begin_at_epoch, costs, dev_costs, best_dev_cost = self.restoreSession(last_saver, sess, restore_from, is_training = True)
             
             for epoch in range(self.params.num_epochs):
+                count_batch = 0
                 print ("epoch: ", epoch + 1)
                 minibatch_cost = 0.
                 num_minibatches = (m + self.params.batch_size - 1) // self.params.batch_size
@@ -168,6 +169,11 @@ class model:
                     
                     # compute training cost
                     minibatch_cost += temp_cost / num_minibatches
+
+                    # Print result
+                    if (count_batch % 10) == 0:
+                        print("temp_cost:", temp_cost)
+                    count_batch += 1
                 
                 costs.append(minibatch_cost) 
 
