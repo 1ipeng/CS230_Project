@@ -4,25 +4,8 @@ import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 import json
-from utils import Params, bins2ab, plotLabImage, random_mini_batches
+from utils import bins2ab, random_mini_batches
 import os
-from scipy.misc import imsave
-import argparse
-import os
-import sys
-
-parser = argparse.ArgumentParser()
-parser.add_argument("--restore", help="restore training from last epoch",
-                    action="store_true")
-parser.add_argument("--train", help="train model",
-                    action="store_true")
-parser.add_argument("--predict", help="show predict results",
-                    action="store_true")
-
-args = parser.parse_args()
-if len(sys.argv) < 2:
-    parser.print_usage()
-
 # Define architecture
 class classification_8layers:
     def __init__(self, data_L, params, is_training=True):
@@ -64,7 +47,7 @@ class classification_8layers:
         bn_momentum = self.params.bn_momentum
         is_training = self.is_training
 
-        assert out.get_shape().as_list() == [None, params.image_size, params.image_size, 1]
+        assert out.get_shape().as_list() == [None, self.params.image_size, self.params.image_size, 1]
     
         for i, c in enumerate(channels): # exclude layer 8 (deconvolution)
             block_name = "block_" + str(i+1)
@@ -76,7 +59,7 @@ class classification_8layers:
                     out = tf.layers.conv2d(out, c, 3, padding='same', strides = (s, s), dilation_rate = (d, d))
                     out = tf.nn.relu(out)
 
-            if params.use_batch_norm:
+            if self.params.use_batch_norm:
                 bn_name = "bn_" + str(i+1)
                 with tf.variable_scope(bn_name):
                     out = tf.layers.batch_normalization(out, momentum=bn_momentum, training=is_training)
@@ -84,7 +67,7 @@ class classification_8layers:
             self.activation[block_name] = out
             self.out = out
 
-        assert out.get_shape().as_list() == [None, params.image_size / 8, params.image_size / 8, 512]
+        assert out.get_shape().as_list() == [None, self.params.image_size / 8, self.params.image_size / 8, 512]
         return out
 
     def deconvlayers(self, out):
@@ -97,7 +80,7 @@ class classification_8layers:
                 out = tf.layers.conv2d_transpose(out, c, 4, padding = 'same', strides = (s, s))
                 out = tf.nn.relu(out)
 
-        assert out.get_shape().as_list() == [None, params.image_size , params.image_size , 256]
+        assert out.get_shape().as_list() == [None, self.params.image_size , self.params.image_size , 256]
         
         self.activation[block_name] = out
         return out
@@ -105,9 +88,9 @@ class classification_8layers:
     def fc_layers(self, out):
         # 1x1 conv -> softmax
         with tf.variable_scope('fc_1'):
-            out = tf.layers.conv2d(out, params.num_bins, 1, padding='same') 
+            out = tf.layers.conv2d(out, self.params.num_bins, 1, padding='same') 
             
-        assert out.get_shape().as_list() == [None, params.image_size, params.image_size, params.num_bins]
+        assert out.get_shape().as_list() == [None, self.params.image_size, self.params.image_size, self.params.num_bins]
         return out
 
 class model:
@@ -157,7 +140,7 @@ class model:
         
         arch = self.build_architecture(is_training = True)
         cost = self.compute_cost(arch.logits, self.Y)
-        if params.use_batch_norm:
+        if self.params.use_batch_norm:
             with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
                 optimizer = tf.train.AdamOptimizer(self.params.learning_rate).minimize(cost)
         else:
@@ -203,7 +186,7 @@ class model:
                     best_saver.save(sess, best_save_path, global_step = begin_at_epoch + epoch + 1)
                     if not (os.path.exists(os.path.join(model_dir,'last_weights'))):
                         os.makedirs(os.path.join(model_dir,'last_weights'))
-                    np.save(os.path.join(model_dir,'last_weights', "bes_dev_cost"), best_dev_cost)
+                    np.save(os.path.join(model_dir,'last_weights', "best_dev_cost"), [best_dev_cost])
 
             # Save sess and costs
             last_save_path = os.path.join(model_dir, 'last_weights', 'after-epoch')
@@ -241,65 +224,3 @@ class model:
             predict_ab = bins2ab(predict_bins)
             
         return predict_bins, predict_ab, predict_cost
-
-
-# Experiment on a toy dataset with train size 100, dev size 30
-
-# Load data
-DIR_TRAIN = "../data/lab_result/100_train_lab/"
-data_L = np.load(DIR_TRAIN + "L.npy")
-data_ab = np.load(DIR_TRAIN + "ab.npy")
-ab_bins = np.load(DIR_TRAIN + "bins.npy")
-params = Params("../experiments/base_model/params.json")
-
-# Shuffle data
-train_size = 100
-dev_size = 30
-m = data_L.shape[0]
-np.random.seed(10)
-permutation = list(np.random.permutation(m))
-train_index = permutation[0:train_size]
-dev_index = permutation[train_size:train_size + dev_size]
-
-# Build toy dataset
-train_L = data_L[train_index]
-train_ab = data_ab[train_index]
-train_bins = ab_bins[train_index]
-dev_L = data_L[dev_index]
-dev_ab = data_ab[dev_index]
-dev_bins = ab_bins[dev_index]
-
-model_dir = "./weights_classification"
-save_path = os.path.join(model_dir, 'last_weights')
-
-# Build model
-model = model(params, classification_8layers)
-
-
-# Train and predict
-if args.train:
-	if args.restore:
-	    model.train(train_L, train_bins, dev_L, dev_bins, model_dir, save_path)
-	else:
-	    model.train(train_L, train_bins, dev_L, dev_bins, model_dir)
-
-# Show result
-if args.predict:
-	save_path = os.path.join(model_dir, 'last_weights')
-	predict_bins, predict_ab, predict_cost = model.predict(dev_L[0:5], dev_bins[0:5], dev_ab[0:5], params, save_path)
-	count = 0
-	for i in range(5):
-	    count = count + 1
-	    orig_img = plotLabImage(dev_L[i], dev_ab[i], (5, 2, count))
-	    count = count + 1
-	    predict_img = plotLabImage(dev_L[i], predict_ab[i], (5, 2, count))
-
-	plt.figure()
-	predict_bins, predict_ab, predict_cost = model.predict(train_L[0:5], train_bins[0:5], train_ab[0:5], params, save_path)
-	count = 0
-	for i in range(5):
-	    count = count + 1
-	    orig_img = plotLabImage(train_L[i], train_ab[i], (5, 2, count))
-	    count = count + 1
-	    predict_img = plotLabImage(train_L[i], predict_ab[i], (5, 2, count))
-	plt.show()
