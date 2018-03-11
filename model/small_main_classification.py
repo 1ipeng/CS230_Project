@@ -1,5 +1,24 @@
-
+import numpy as np
+import argparse
+import sys
+import matplotlib.pyplot as plt
+from utils import Params, bins2ab, plotLabImage, random_mini_batches
+import os
+from scipy.misc import imsave
+from classification_model import classification_8layers, model
 # Experiment on a toy dataset with train size 100, dev size 30
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--restore", help="restore training from last epoch",
+                    action="store_true")
+parser.add_argument("--train", help="train model",
+                    action="store_true")
+parser.add_argument("--predict", help="show predict results",
+                    action="store_true")
+
+args = parser.parse_args()
+if len(sys.argv) < 2:
+    parser.print_usage()
 
 # Load data
 DIR_TRAIN = "../data/lab_result/100_train_lab/"

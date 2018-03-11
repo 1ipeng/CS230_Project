@@ -205,25 +205,57 @@ class model:
         m = X_test.shape[0]
         arch = self.build_architecture(is_training = False)
         logits = arch.logits
-        cost = self.compute_cost(arch.logits, self.Y)                
-        predict_cost = sess.run(cost, feed_dict={self.X: X_test, self.Y: Y_test})
-        return predict_cost
+        cost = self.compute_cost(arch.logits, self.Y)     
+
+        minibatches = random_mini_batches(X_test, Y_test, self.params.batch_size)
+        minibatch_cost = 0.
+        num_minibatches = (m + self.params.batch_size - 1) // self.params.batch_size
+
+        count_batch = 0 
+        for minibatch in minibatches:
+            # Select a minibatch
+            (minibatch_X, minibatch_Y) = minibatch
+            temp_cost = sess.run(cost, feed_dict={self.X: minibatch_X, self.Y: minibatch_Y})
+            
+            # compute dev cost
+            minibatch_cost += temp_cost / num_minibatches
+
+            # Print result
+            if (count_batch % 10) == 0:
+                print("dev_count_batch",count_batch,"dev_temp_cost:", temp_cost)
+            count_batch += 1
+
+        return minibatch_cost
 
     def predict(self, X_test, Y_test, data_ab, params, restore_from):
         # Make prediction. Used outside a session.
         m = X_test.shape[0]
         arch = self.build_architecture(is_training = False)
-        
         logits = arch.logits
         cost = self.compute_cost(arch.logits, self.Y)
         last_saver = tf.train.Saver(max_to_keep = 1)
+
         with tf.Session() as sess:
             init = tf.global_variables_initializer()
             sess.run(init)
-
             self.restoreSession(last_saver, sess, restore_from, False)
-                    
-            predict_cost, predict_logits = sess.run([cost, logits], feed_dict={self.X: X_test, self.Y: Y_test})
+            
+            minibatches = random_mini_batches(X_test, Y_test, self.params.batch_size)
+            minibatch_cost = 0.
+            num_minibatches = (m + self.params.batch_size - 1) // self.params.batch_size
+
+            count_batch = 0 
+
+            predict_logits = np.zeros((m, self.params.image_size, self.params.image_size, 1))
+
+            for minibatch in minibatches:
+                temp_cost, temp_logits = sess.run([cost, logits], feed_dict={self.X: X_test, self.Y: Y_test})
+                minibatch_cost += temp_cost / num_minibatches
+
+                #python will automatically handle last batch size issue
+                predict_logits[count_batch * self.params.batch_size : (count_batch + 1) * self.params.batch_size,:,:,:] = temp_logits  
+
+
             predict_bins = np.argmax(predict_logits, axis = -1)
 
             predict_bins = predict_bins.reshape(predict_bins.shape[0], predict_bins.shape[1], predict_bins.shape[2], 1)
