@@ -56,7 +56,7 @@ class classification_8layers:
                 with tf.variable_scope(conv_name):
                     s = strides[i][j]
                     d = dilation[i]
-                    out = tf.layers.conv2d(out, c, 3, padding='same', strides = (s, s), dilation_rate = (d, d),kernel_regularizer= tf.contrib.layers.l2_regularizer(scale= self.params.reg_constant))
+                    out = tf.layers.conv2d(out, c, 3, padding='same', strides = (s, s), dilation_rate = (d, d),kernel_regularizer= tf.contrib.layers.l2_regularizer(scale= 0.1))
                     out = tf.nn.relu(out)
 
             if self.params.use_batch_norm:
@@ -77,7 +77,7 @@ class classification_8layers:
         c = 256 #channels
         for i in range(3):
              with tf.variable_scope('deconv_' + str(i+1)):
-                out = tf.layers.conv2d_transpose(out, c, 4, padding = 'same', strides = (s, s), kernel_regularizer= tf.contrib.layers.l2_regularizer(scale= self.params.reg_constant))
+                out = tf.layers.conv2d_transpose(out, c, 4, padding = 'same', strides = (s, s), kernel_regularizer= tf.contrib.layers.l2_regularizer(scale= 0.1))
                 out = tf.nn.relu(out)
 
         assert out.get_shape().as_list() == [None, self.params.image_size , self.params.image_size , 256]
@@ -88,7 +88,7 @@ class classification_8layers:
     def fc_layers(self, out):
         # 1x1 conv -> softmax
         with tf.variable_scope('fc_1'):
-            out = tf.layers.conv2d(out, self.params.num_bins, 1, padding='same',kernel_regularizer= tf.contrib.layers.l2_regularizer(scale= self.params.reg_constant)) 
+            out = tf.layers.conv2d(out, self.params.num_bins, 1, padding='same',kernel_regularizer= tf.contrib.layers.l2_regularizer(scale= 0.1)) 
             
         assert out.get_shape().as_list() == [None, self.params.image_size, self.params.image_size, self.params.num_bins]
         return out
