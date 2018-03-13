@@ -56,7 +56,7 @@ class classification_8layers:
                 with tf.variable_scope(conv_name):
                     s = strides[i][j]
                     d = dilation[i]
-                    out = tf.layers.conv2d(out, c, 3, padding='same', strides = (s, s), dilation_rate = (d, d),kernel_regularizer= tf.contrib.layers.l2_regularizer(0.1))
+                    out = tf.layers.conv2d(out, c, 3, padding='same', strides = (s, s), dilation_rate = (d, d), kernel_regularizer= tf.contrib.layers.l2_regularizer(self.params.reg_constant))
                     out = tf.nn.relu(out)
 
             if self.params.use_batch_norm:
@@ -77,7 +77,7 @@ class classification_8layers:
         c = 256 #channels
         for i in range(3):
              with tf.variable_scope('deconv_' + str(i+1)):
-                out = tf.layers.conv2d_transpose(out, c, 4, padding = 'same', strides = (s, s), kernel_regularizer= tf.contrib.layers.l2_regularizer(0.1))
+                out = tf.layers.conv2d_transpose(out, c, 4, padding = 'same', strides = (s, s), kernel_regularizer= tf.contrib.layers.l2_regularizer(self.params.reg_constant))
                 out = tf.nn.relu(out)
 
         assert out.get_shape().as_list() == [None, self.params.image_size , self.params.image_size , 256]
@@ -88,7 +88,7 @@ class classification_8layers:
     def fc_layers(self, out):
         # 1x1 conv -> softmax
         with tf.variable_scope('fc_1'):
-            out = tf.layers.conv2d(out, self.params.num_bins, 1, padding='same',kernel_regularizer= tf.contrib.layers.l2_regularizer(0.1)) 
+            out = tf.layers.conv2d(out, self.params.num_bins, 1, padding='same',kernel_regularizer= tf.contrib.layers.l2_regularizer(self.params.reg_constant)) 
             
         assert out.get_shape().as_list() == [None, self.params.image_size, self.params.image_size, self.params.num_bins]
         return out
@@ -113,11 +113,16 @@ class model:
             test_arch = arch(self.X, self.params, is_training = False)
         return train_arch, test_arch
 
-    def compute_cost(self, logits, labels):
+    def compute_l2_cost(self, logits, labels):
         # Softmax loss
         l2_loss = tf.losses.get_regularization_loss()
         cost = tf.losses.sparse_softmax_cross_entropy(logits = logits, labels = labels) + l2_loss
         self.check_loss = l2_loss
+        return cost
+
+    def compute_cost(self, logits, labels):
+        # Softmax loss
+        cost = tf.losses.sparse_softmax_cross_entropy(logits = logits, labels = labels)
         return cost
 
     def restoreSession(self, last_saver, sess, restore_from, is_training):
@@ -143,12 +148,14 @@ class model:
         m = X_train.shape[0]
         
         arch = self.train_arch
+        l2_cost = self.compute_l2_cost(arch.logits, self.Y)
         cost = self.compute_cost(arch.logits, self.Y)
+
         if self.params.use_batch_norm:
             with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
-                optimizer = tf.train.AdamOptimizer(self.params.learning_rate).minimize(cost)
+                optimizer = tf.train.AdamOptimizer(self.params.learning_rate).minimize(l2_cost)
         else:
-            optimizer = tf.train.AdamOptimizer(self.params.learning_rate).minimize(cost)
+            optimizer = tf.train.AdamOptimizer(self.params.learning_rate).minimize(l2_cost)
 
         last_saver = tf.train.Saver(max_to_keep = 1)
         best_saver = tf.train.Saver(max_to_keep = 1)
@@ -169,12 +176,11 @@ class model:
                 for minibatch in minibatches:
                     # Select a minibatch
                     (minibatch_X, minibatch_Y) = minibatch
-                    _ , temp_cost, l2_loss = sess.run([optimizer, cost, self.check_loss], feed_dict={self.X: minibatch_X, self.Y: minibatch_Y})
+                    _ , temp_cost = sess.run([optimizer, cost], feed_dict={self.X: minibatch_X, self.Y: minibatch_Y})
                     
                     # compute training cost
                     minibatch_cost += temp_cost / num_minibatches
 
-                    print("l2_loss:", l2_loss)
                     # Print result
                     if (count_batch % 10) == 0:
                         print("count_batch",count_batch,"temp_cost:", temp_cost)
