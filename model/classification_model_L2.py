@@ -98,18 +98,20 @@ class model:
         # params: hyperparameter
         # arch: Network architeture 
         self.params = params
-        self.arch = arch
         self.X, self.Y = self.create_placeholders(self.params.image_size, self.params.image_size, 1, 1)
+        self.train_arch, self.test_arch = build_architecture(arch)
 
     def create_placeholders(self, n_H0, n_W0, n_C0, n_y):
         X = tf.placeholder(tf.float32, shape = (None, n_H0, n_W0, n_C0))
         Y = tf.placeholder(tf.int32, shape = (None, n_H0, n_W0, n_y))
         return X, Y
 
-    def build_architecture(self, is_training):
+    def build_architecture(self, arch):
         with tf.variable_scope('model', reuse = tf.AUTO_REUSE):
-            arch = self.arch(self.X, self.params, is_training = is_training)
-        return arch
+            train_arch = arch(self.X, self.params, is_training = True)
+        with tf.variable_scope('model', reuse = tf.AUTO_REUSE):
+            test_arch = arch(self.X, self.params, is_training = False)
+        return train_arch, test_arch
 
     def compute_cost(self, logits, labels):
         # Softmax loss
@@ -139,7 +141,7 @@ class model:
     def train(self, X_train, Y_train, X_dev, Y_dev, model_dir, restore_from = None, print_cost = True):
         m = X_train.shape[0]
         
-        arch = self.build_architecture(is_training = True)
+        arch = self.train_arch
         cost = self.compute_cost(arch.logits, self.Y)
         if self.params.use_batch_norm:
             with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
@@ -204,7 +206,7 @@ class model:
     def evaluate(self, X_test, Y_test, params, sess):
         # Evaluate the dev set. Used inside a session.
         m = X_test.shape[0]
-        arch = self.build_architecture(is_training = False)
+        arch = self.test_arch
         logits = arch.logits
         cost = self.compute_cost(arch.logits, self.Y)     
 
@@ -231,7 +233,7 @@ class model:
     def predict(self, X_test, Y_test, data_ab, params, restore_from):
         # Make prediction. Used outside a session.
         m = X_test.shape[0]
-        arch = self.build_architecture(is_training = False)
+        arch = self.test_arch
         logits = arch.logits
         cost = self.compute_cost(arch.logits, self.Y)
         last_saver = tf.train.Saver(max_to_keep = 1)
