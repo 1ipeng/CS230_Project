@@ -75,6 +75,8 @@ if args.train:
 
 # Show result
 if args.predict:
+	predict_index = 100
+
 	save_path = os.path.join(model_dir, 'last_weights')
 	predict_bins, predict_ab, predict_cost = model.predict(dev_L[0:5], dev_bins[0:5], dev_ab[0:5], params, save_path)
 	count = 0
@@ -85,11 +87,11 @@ if args.predict:
 	    predict_img = plotLabImage(dev_L[i], predict_ab[i], (5, 2, count))
 
 	plt.figure()
-	predict_bins, predict_ab, predict_cost = model.predict(train_L[0:5], train_bins[0:5], train_ab[0:5], params, save_path)
+	predict_bins, predict_ab, predict_cost = model.predict(train_L[100:105], train_bins[100:105], train_ab[100:105], params, save_path)
 	count = 0
 	for i in range(5):
 	    count = count + 1
-	    orig_img = plotLabImage(train_L[i], train_ab[i], (5, 2, count))
+	    orig_img = plotLabImage(train_L[predict_index + i], train_ab[predict_index + i], (5, 2, count))
 	    count = count + 1
-	    predict_img = plotLabImage(train_L[i], predict_ab[i], (5, 2, count))
+	    predict_img = plotLabImage(train_L[predict_index + i], predict_ab[i], (5, 2, count))
 	plt.show()

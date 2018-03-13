@@ -125,6 +125,11 @@ class model:
         cost = tf.losses.sparse_softmax_cross_entropy(logits = logits, labels = labels)
         return cost
 
+    def compute_accuracy(self, logits, labels):
+        predict = tf.argmax(logits, -1)
+        accuracy = tf.reduce_mean(tf.cast(tf.equal(labels, predictions), tf.float32))
+        return accuracy
+
     def restoreSession(self, last_saver, sess, restore_from, is_training):
         # Restore sess, cost from last training
         begin_at_epoch = 0
@@ -257,7 +262,7 @@ class model:
 
             count_batch = 0 
 
-            predict_logits = np.zeros((m, self.params.image_size, self.params.image_size, 1))
+            predict_logits = np.zeros((m, self.params.image_size, self.params.image_size, 529))
 
             for minibatch in minibatches:
                 temp_cost, temp_logits = sess.run([cost, logits], feed_dict={self.X: X_test, self.Y: Y_test})
@@ -266,10 +271,9 @@ class model:
                 #python will automatically handle last batch size issue
                 predict_logits[count_batch * self.params.batch_size : (count_batch + 1) * self.params.batch_size,:,:,:] = temp_logits  
 
-
             predict_bins = np.argmax(predict_logits, axis = -1)
 
             predict_bins = predict_bins.reshape(predict_bins.shape[0], predict_bins.shape[1], predict_bins.shape[2], 1)
             predict_ab = bins2ab(predict_bins)
             
-        return predict_bins, predict_ab, predict_cost
+        return predict_bins, predict_ab, minibatch_cost
