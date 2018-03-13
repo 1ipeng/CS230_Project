@@ -119,6 +119,7 @@ class model:
         cost = tf.losses.sparse_softmax_cross_entropy(logits = logits, labels = labels) + self.params.reg_constant * sum(reg_losses)
         self.check_loss = tf.losses.sparse_softmax_cross_entropy(logits = logits, labels = labels)
         self.check_l2 = self.params.reg_constant * sum(reg_losses)
+        print(self.check_l2)
         return cost
 
     def restoreSession(self, last_saver, sess, restore_from, is_training):
@@ -170,12 +171,11 @@ class model:
                 for minibatch in minibatches:
                     # Select a minibatch
                     (minibatch_X, minibatch_Y) = minibatch
-                    _ , temp_cost, norm_loss, l2_loss = sess.run([optimizer, cost, self.check_loss, self.check_l2], feed_dict={self.X: minibatch_X, self.Y: minibatch_Y})
+                    _ , temp_cost = sess.run([optimizer, cost], feed_dict={self.X: minibatch_X, self.Y: minibatch_Y})
                     
                     # compute training cost
                     minibatch_cost += temp_cost / num_minibatches
 
-                    print("norm_loss",norm_loss,"l2_loss:", l2_loss)
                     # Print result
                     if (count_batch % 10) == 0:
                         print("count_batch",count_batch,"temp_cost:", temp_cost)
