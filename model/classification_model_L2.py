@@ -56,7 +56,7 @@ class classification_8layers:
                 with tf.variable_scope(conv_name):
                     s = strides[i][j]
                     d = dilation[i]
-                    out = tf.layers.conv2d(out, c, 3, padding='same', strides = (s, s), dilation_rate = (d, d))
+                    out = tf.layers.conv2d(out, c, 3, padding='same', strides = (s, s), dilation_rate = (d, d),kernel_regularizer= tf.contrib.layers.l2_regularizer(scale= self.params.reg_constant))
                     out = tf.nn.relu(out)
 
             if self.params.use_batch_norm:
@@ -77,7 +77,7 @@ class classification_8layers:
         c = 256 #channels
         for i in range(3):
              with tf.variable_scope('deconv_' + str(i+1)):
-                out = tf.layers.conv2d_transpose(out, c, 4, padding = 'same', strides = (s, s))
+                out = tf.layers.conv2d_transpose(out, c, 4, padding = 'same', strides = (s, s), kernel_regularizer= tf.contrib.layers.l2_regularizer(scale= self.params.reg_constant))
                 out = tf.nn.relu(out)
 
         assert out.get_shape().as_list() == [None, self.params.image_size , self.params.image_size , 256]
@@ -88,7 +88,7 @@ class classification_8layers:
     def fc_layers(self, out):
         # 1x1 conv -> softmax
         with tf.variable_scope('fc_1'):
-            out = tf.layers.conv2d(out, self.params.num_bins, 1, padding='same') 
+            out = tf.layers.conv2d(out, self.params.num_bins, 1, padding='same',kernel_regularizer= tf.contrib.layers.l2_regularizer(scale= self.params.reg_constant)) 
             
         assert out.get_shape().as_list() == [None, self.params.image_size, self.params.image_size, self.params.num_bins]
         return out
@@ -115,11 +115,9 @@ class model:
 
     def compute_cost(self, logits, labels):
         # Softmax loss
-        reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
-        cost = tf.losses.sparse_softmax_cross_entropy(logits = logits, labels = labels) + self.params.reg_constant * sum(reg_losses)
-        self.check_loss = tf.losses.sparse_softmax_cross_entropy(logits = logits, labels = labels)
-        self.check_l2 = self.params.reg_constant * sum(reg_losses)
-        print(self.check_l2)
+        l2_loss = tf.losses.get_regularization_loss()
+        cost = tf.losses.sparse_softmax_cross_entropy(logits = logits, labels = labels) + l2_loss
+        self.check_loss = l2_loss
         return cost
 
     def restoreSession(self, last_saver, sess, restore_from, is_training):
@@ -171,11 +169,12 @@ class model:
                 for minibatch in minibatches:
                     # Select a minibatch
                     (minibatch_X, minibatch_Y) = minibatch
-                    _ , temp_cost = sess.run([optimizer, cost], feed_dict={self.X: minibatch_X, self.Y: minibatch_Y})
+                    _ , temp_cost, l2_loss = sess.run([optimizer, cost, self.check_loss], feed_dict={self.X: minibatch_X, self.Y: minibatch_Y})
                     
                     # compute training cost
                     minibatch_cost += temp_cost / num_minibatches
 
+                    print("l2_loss:", l2_loss)
                     # Print result
                     if (count_batch % 10) == 0:
                         print("count_batch",count_batch,"temp_cost:", temp_cost)
