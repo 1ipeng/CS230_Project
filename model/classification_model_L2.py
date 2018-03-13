@@ -99,7 +99,7 @@ class model:
         # arch: Network architeture 
         self.params = params
         self.X, self.Y = self.create_placeholders(self.params.image_size, self.params.image_size, 1, 1)
-        self.train_arch, self.test_arch = build_architecture(arch)
+        self.train_arch, self.test_arch = self.build_architecture(arch)
 
     def create_placeholders(self, n_H0, n_W0, n_C0, n_y):
         X = tf.placeholder(tf.float32, shape = (None, n_H0, n_W0, n_C0))
