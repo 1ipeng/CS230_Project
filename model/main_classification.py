@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from utils import Params, bins2ab, plotLabImage, random_mini_batches
 import os
 from scipy.misc import imsave
-from classification_model import classification_8layers, model
+from classification_model_L2 import classification_8layers, model
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--restore", help="restore training from last epoch",
@@ -13,6 +13,8 @@ parser.add_argument("--restore", help="restore training from last epoch",
 parser.add_argument("--train", help="train model",
                     action="store_true")
 parser.add_argument("--predict", help="show predict results",
+                    action="store_true")
+parser.add_argument("--small", help="train on small dataset",
                     action="store_true")
 
 args = parser.parse_args()
@@ -48,6 +50,14 @@ dev_bins = test_dev_bins[dev_index]
 test_L = test_dev_L[test_index]
 test_ab = test_dev_ab[test_index]
 test_bins = test_dev_bins[test_index]
+
+if args.small:
+	train_L = train_L[0:5000]
+	train_ab = train_ab[0:5000]
+	train_bins = train_bins[0:5000]
+	dev_L = dev_L[0:500]
+	dev_ab = dev_ab[0:500]
+	dev_bins = dev_bins[0:500]
 
 # Weight directory
 model_dir = "./weights_classification"

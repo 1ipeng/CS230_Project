@@ -13,5 +13,6 @@
 
     "num_parallel_calls": 4,
     "save_summary_steps": 1,
+    "reg_constant": 0.01,
     "num_bins": 529
 }
