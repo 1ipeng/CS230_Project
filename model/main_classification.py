@@ -37,7 +37,7 @@ test_dev_bins = np.load(DIR_TEST + "bins.npy")
 # Shuffle data
 dev_size = 5000
 m = test_dev_L.shape[0]
-np.random.seed(10)
+np.random.seed(313)
 permutation = list(np.random.permutation(m))
 dev_index = permutation[0:dev_size]
 test_index = permutation[dev_size:]
