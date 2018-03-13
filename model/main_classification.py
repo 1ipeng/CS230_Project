@@ -52,12 +52,12 @@ test_ab = test_dev_ab[test_index]
 test_bins = test_dev_bins[test_index]
 
 if args.small:
-	train_L = train_L[0:5000]
-	train_ab = train_ab[0:5000]
-	train_bins = train_bins[0:5000]
-	dev_L = dev_L[0:500]
-	dev_ab = dev_ab[0:500]
-	dev_bins = dev_bins[0:500]
+	train_L = train_L[0:1000]
+	train_ab = train_ab[0:1000]
+	train_bins = train_bins[0:1000]
+	dev_L = dev_L[0:100]
+	dev_ab = dev_ab[0:100]
+	dev_bins = dev_bins[0:100]
 
 # Weight directory
 model_dir = "./weights_classification"
