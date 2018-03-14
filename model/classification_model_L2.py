@@ -58,6 +58,7 @@ class classification_8layers:
                     d = dilation[i]
                     out = tf.layers.conv2d(out, c, 3, padding='same', strides = (s, s), dilation_rate = (d, d), kernel_regularizer= tf.contrib.layers.l2_regularizer(self.params.reg_constant))
                     out = tf.nn.relu(out)
+                    out = tf.layers.dropout(inputs=out, rate=self.params.dropout_rate, training=is_training)
 
             if self.params.use_batch_norm:
                 bn_name = "bn_" + str(i+1)
@@ -79,6 +80,7 @@ class classification_8layers:
              with tf.variable_scope('deconv_' + str(i+1)):
                 out = tf.layers.conv2d_transpose(out, c, 4, padding = 'same', strides = (s, s), kernel_regularizer= tf.contrib.layers.l2_regularizer(self.params.reg_constant))
                 out = tf.nn.relu(out)
+                out = tf.layers.dropout(inputs=out, rate=self.params.dropout_rate, training=is_training)
 
         assert out.get_shape().as_list() == [None, self.params.image_size , self.params.image_size , 256]
         
@@ -89,7 +91,8 @@ class classification_8layers:
         # 1x1 conv -> softmax
         with tf.variable_scope('fc_1'):
             out = tf.layers.conv2d(out, self.params.num_bins, 1, padding='same',kernel_regularizer= tf.contrib.layers.l2_regularizer(self.params.reg_constant)) 
-            
+            out = tf.layers.dropout(inputs=out, rate=self.params.dropout_rate, training=is_training)
+
         assert out.get_shape().as_list() == [None, self.params.image_size, self.params.image_size, self.params.num_bins]
         return out
 
@@ -174,9 +177,9 @@ class model:
                 count_batch = 0
                 print ("epoch: ", epoch + 1)
                 minibatch_cost = 0.
-                num_minibatches = (m + self.params.batch_size - 1) // self.params.batch_size
+                num_minibatches = (m + self.params.train_batch_size - 1) // self.params.train_batch_size
 
-                minibatches = random_mini_batches(X_train, Y_train, self.params.batch_size)
+                minibatches = random_mini_batches(X_train, Y_train, self.params.train_batch_size)
  
                 for minibatch in minibatches:
                     # Select a minibatch
@@ -223,11 +226,11 @@ class model:
         logits = arch.logits
         cost = self.compute_cost(arch.logits, self.Y)     
 
-        minibatches = random_mini_batches(X_test, Y_test, self.params.batch_size)
+        minibatches = random_mini_batches(X_test, Y_test, self.params.test_batch_size)
         minibatch_cost = 0.
-        num_minibatches = (m + self.params.batch_size - 1) // self.params.batch_size
+        num_minibatches = (m + self.params.test_batch_size - 1) // self.params.test_batch_size
 
-        count_batch = 0 
+
         for minibatch in minibatches:
             # Select a minibatch
             (minibatch_X, minibatch_Y) = minibatch
@@ -256,20 +259,20 @@ class model:
             sess.run(init)
             self.restoreSession(last_saver, sess, restore_from, False)
             
-            minibatches = random_mini_batches(X_test, Y_test, self.params.batch_size)
+            minibatches = random_mini_batches(X_test, Y_test, self.params.test_batch_size)
             minibatch_cost = 0.
-            num_minibatches = (m + self.params.batch_size - 1) // self.params.batch_size
+            num_minibatches = (m + self.params.test_batch_size - 1) // self.params.test_batch_size
 
             count_batch = 0 
 
-            predict_logits = np.zeros((m, self.params.image_size, self.params.image_size, 529))
+            predict_logits = np.zeros((m, self.params.image_size, self.params.image_size, self.params.num_bins))
 
             for minibatch in minibatches:
                 temp_cost, temp_logits = sess.run([cost, logits], feed_dict={self.X: X_test, self.Y: Y_test})
                 minibatch_cost += temp_cost / num_minibatches
 
                 #python will automatically handle last batch size issue
-                predict_logits[count_batch * self.params.batch_size : (count_batch + 1) * self.params.batch_size,:,:,:] = temp_logits  
+                predict_logits[count_batch * self.params.test_batch_size : (count_batch + 1) * self.params.test_batch_size,:,:,:] = temp_logits  
 
             predict_bins = np.argmax(predict_logits, axis = -1)
 
