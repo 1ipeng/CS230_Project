@@ -80,7 +80,7 @@ class classification_8layers:
              with tf.variable_scope('deconv_' + str(i+1)):
                 out = tf.layers.conv2d_transpose(out, c, 4, padding = 'same', strides = (s, s), kernel_regularizer= tf.contrib.layers.l2_regularizer(self.params.reg_constant))
                 out = tf.nn.relu(out)
-                out = tf.layers.dropout(inputs=out, rate=self.params.dropout_rate, training=is_training)
+                out = tf.layers.dropout(inputs=out, rate=self.params.dropout_rate, training=self.is_training)
 
         assert out.get_shape().as_list() == [None, self.params.image_size , self.params.image_size , 256]
         
@@ -91,7 +91,7 @@ class classification_8layers:
         # 1x1 conv -> softmax
         with tf.variable_scope('fc_1'):
             out = tf.layers.conv2d(out, self.params.num_bins, 1, padding='same',kernel_regularizer= tf.contrib.layers.l2_regularizer(self.params.reg_constant)) 
-            out = tf.layers.dropout(inputs=out, rate=self.params.dropout_rate, training=is_training)
+            out = tf.layers.dropout(inputs=out, rate=self.params.dropout_rate, training=self.is_training)
 
         assert out.get_shape().as_list() == [None, self.params.image_size, self.params.image_size, self.params.num_bins]
         return out
