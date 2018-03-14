@@ -230,7 +230,7 @@ class model:
         minibatch_cost = 0.
         num_minibatches = (m + self.params.test_batch_size - 1) // self.params.test_batch_size
 
-
+        count_batch=0
         for minibatch in minibatches:
             # Select a minibatch
             (minibatch_X, minibatch_Y) = minibatch
@@ -240,8 +240,8 @@ class model:
             minibatch_cost += temp_cost / num_minibatches
 
             # Print result
-            if (count_batch % 10) == 0:
-                print("dev_count_batch",count_batch,"dev_temp_cost:", temp_cost)
+            #if (count_batch % 10) == 0:
+            print("dev_count_batch",count_batch,"dev_temp_cost:", temp_cost)
             count_batch += 1
 
         return minibatch_cost
