@@ -52,9 +52,9 @@ test_ab = test_dev_ab[test_index]
 test_bins = test_dev_bins[test_index]
 
 if args.small:
-	train_L = train_L[0:1000]
-	train_ab = train_ab[0:1000]
-	train_bins = train_bins[0:1000]
+	train_L = train_L[0:5000]
+	train_ab = train_ab[0:5000]
+	train_bins = train_bins[0:5000]
 	dev_L = dev_L[0:100]
 	dev_ab = dev_ab[0:100]
 	dev_bins = dev_bins[0:100]
@@ -74,24 +74,26 @@ if args.train:
 	    model.train(train_L, train_bins, dev_L, dev_bins, model_dir)
 
 # Show result
-if args.predict:
-	predict_index = 100
-
-	save_path = os.path.join(model_dir, 'last_weights')
-	predict_bins, predict_ab, predict_cost = model.predict(dev_L[0:5], dev_bins[0:5], dev_ab[0:5], params, save_path)
-	count = 0
-	for i in range(5):
-	    count = count + 1
-	    orig_img = plotLabImage(dev_L[i], dev_ab[i], (5, 2, count))
-	    count = count + 1
-	    predict_img = plotLabImage(dev_L[i], predict_ab[i], (5, 2, count))
-
+def showBestResult(dev_L, dev_bins, dev_ab):
 	plt.figure()
-	predict_bins, predict_ab, predict_cost = model.predict(train_L[100:105], train_bins[100:105], train_ab[100:105], params, save_path)
+	save_path = os.path.join(model_dir, 'last_weights')
+	predict_bins, predict_ab, predict_costs = model.predict(dev_L, dev_bins, dev_ab, params, save_path)
+	index_min = np.argmin(predict_costs)
+	plotLabImage(dev_L[index_min], dev_ab[index_min], (2, 1, 1))
+	plotLabImage(dev_L[index_min], predict_ab[index_min], (2, 1, 2))
+	plt.show()
+
+def show5results(dev_L, dev_bins, dev_ab, start_index):
+	plt.figure()
+	save_path = os.path.join(model_dir, 'last_weights')
+	predict_bins, predict_ab, predict_cost = model.predict(dev_L[start_index:start_index + 5], dev_bins[start_index:start_index + 5], dev_ab[start_index:start_index + 5], params, save_path)
 	count = 0
 	for i in range(5):
 	    count = count + 1
-	    orig_img = plotLabImage(train_L[predict_index + i], train_ab[predict_index + i], (5, 2, count))
+	    orig_img = plotLabImage(dev_L[start_index + i], dev_ab[start_index + i], (5, 2, count))
 	    count = count + 1
-	    predict_img = plotLabImage(train_L[predict_index + i], predict_ab[i], (5, 2, count))
+	    predict_img = plotLabImage(dev_L[start_index + i], predict_ab[i], (5, 2, count))
 	plt.show()
+
+if args.predict:
+	showBestResult(dev_L, dev_bins, dev_ab)
