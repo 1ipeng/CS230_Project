@@ -93,7 +93,7 @@ class train_evaluate:
                 # compute dev cost
                 dev_cost, dev_accuracy = self.evaluate(X_dev, Y_dev, sess)
                 dev_costs.append(dev_cost)
-                dev_accuracies.append(dev_accuracies)
+                dev_accuracies.append(dev_accuracy)
 
                 if print_cost == True and epoch % 1 == 0:
                     print ("Cost after epoch %i: %f" % (begin_at_epoch + epoch + 1, minibatch_cost))    
