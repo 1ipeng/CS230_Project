@@ -1,32 +1,42 @@
 # Classification model
-
 import tensorflow as tf
-import numpy as np
-import matplotlib.pyplot as plt
-import json
-from utils import bins2ab, random_mini_batches
 import os
-# Define architecture
-class classification_8layers:
-    def __init__(self, data_L, params, is_training=True):
-        # data_L: input placeholder
-        # params: hyperparameters
 
+# Define architecture
+class classification_8layers_model:
+    def __init__(self, params, is_training=True):
+        # params: hyperparameters
         self.params = params
         self.is_training = is_training
-        self.activation = {} # save activation for debugging
-
-        input_L = self.normalize(data_L)
-        conv_out = self.convlayers(input_L)
+        self.activation = {}
+        self.X, self.Y = self.create_placeholders()
+        normalized_X = self.normalize(self.X)
+        conv_out = self.convlayers(normalized_X)
         deconv_out = self.deconvlayers(conv_out)
-
         self.logits = self.fc_layers(deconv_out)
         self.probs = tf.nn.softmax(self.logits)
+        self.cost = self.compute_cost(self.logits, self.Y)
+        self.l2_cost = self.compute_l2_cost(self.logits, self.Y)
+
+    def create_placeholders(self):
+        X = tf.placeholder(tf.float32, shape = (None, self.params.image_size, self.params.image_size, 1))
+        Y = tf.placeholder(tf.int32, shape = (None, self.params.image_size, self.params.image_size, 1))
+        return X, Y
+
+    def compute_l2_cost(self, logits, labels):
+        # Softmax loss + L2 Loss
+        l2_loss = tf.losses.get_regularization_loss()
+        cost = tf.losses.sparse_softmax_cross_entropy(logits = logits, labels = labels) + l2_loss
+        return cost
+
+    def compute_cost(self, logits, labels):
+        # Softmax loss
+        cost = tf.losses.sparse_softmax_cross_entropy(logits = logits, labels = labels)
+        return cost
 
     def normalize(self, data_L):
         input_L = tf.cast(data_L, tf.float32)
         input_L = input_L / tf.constant(100.)
-        
         return input_L
 
     def convlayers(self, out):
@@ -95,188 +105,3 @@ class classification_8layers:
 
         assert out.get_shape().as_list() == [None, self.params.image_size, self.params.image_size, self.params.num_bins]
         return out
-
-class model:
-    def __init__(self, params, arch):
-        # params: hyperparameter
-        # arch: Network architeture 
-        self.params = params
-        self.X, self.Y = self.create_placeholders(self.params.image_size, self.params.image_size, 1, 1)
-        self.train_arch, self.test_arch = self.build_architecture(arch)
-
-    def create_placeholders(self, n_H0, n_W0, n_C0, n_y):
-        X = tf.placeholder(tf.float32, shape = (None, n_H0, n_W0, n_C0))
-        Y = tf.placeholder(tf.int32, shape = (None, n_H0, n_W0, n_y))
-        return X, Y
-
-    def build_architecture(self, arch):
-        with tf.variable_scope('model', reuse = tf.AUTO_REUSE):
-            train_arch = arch(self.X, self.params, is_training = True)
-        with tf.variable_scope('model', reuse = tf.AUTO_REUSE):
-            test_arch = arch(self.X, self.params, is_training = False)
-        return train_arch, test_arch
-
-    def compute_l2_cost(self, logits, labels):
-        # Softmax loss
-        l2_loss = tf.losses.get_regularization_loss()
-        cost = tf.losses.sparse_softmax_cross_entropy(logits = logits, labels = labels) + l2_loss
-        self.check_loss = l2_loss
-        return cost
-
-    def compute_cost(self, logits, labels):
-        # Softmax loss
-        cost = tf.losses.sparse_softmax_cross_entropy(logits = logits, labels = labels)
-        return cost
-
-    def compute_accuracy(self, logits, labels):
-        predict = tf.argmax(logits, -1)
-        accuracy = tf.reduce_mean(tf.cast(tf.equal(labels, predictions), tf.float32))
-        return accuracy
-
-    def restoreSession(self, last_saver, sess, restore_from, is_training):
-        # Restore sess, cost from last training
-        begin_at_epoch = 0
-        costs = []
-        dev_costs = []
-        best_dev_cost = float('inf')
-        if restore_from is not None:
-            if os.path.isdir(restore_from):
-                sess_path = tf.train.latest_checkpoint(restore_from)
-                begin_at_epoch = int(sess_path.split('-')[-1])
-            last_saver.restore(sess, sess_path)
-            
-            if is_training:
-                costs = np.load(os.path.join(restore_from, "costs.npy")).tolist()
-                dev_costs = np.load(os.path.join(restore_from, "dev_costs.npy")).tolist()
-                best_dev_cost = np.load(os.path.join(restore_from,"best_dev_cost.npy"))[0]
-
-        return begin_at_epoch, costs, dev_costs, best_dev_cost
-
-    def train(self, X_train, Y_train, X_dev, Y_dev, model_dir, restore_from = None, print_cost = True):
-        m = X_train.shape[0]
-        
-        arch = self.train_arch
-        l2_cost = self.compute_l2_cost(arch.logits, self.Y)
-        cost = self.compute_cost(arch.logits, self.Y)
-
-        if self.params.use_batch_norm:
-            with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
-                optimizer = tf.train.AdamOptimizer(self.params.learning_rate).minimize(l2_cost)
-        else:
-            optimizer = tf.train.AdamOptimizer(self.params.learning_rate).minimize(l2_cost)
-
-        last_saver = tf.train.Saver(max_to_keep = 1)
-        best_saver = tf.train.Saver(max_to_keep = 1)
-        with tf.Session() as sess:
-            init = tf.global_variables_initializer()
-            sess.run(init)
-
-            begin_at_epoch, costs, dev_costs, best_dev_cost = self.restoreSession(last_saver, sess, restore_from, is_training = True)
-            
-            for epoch in range(self.params.num_epochs):
-                count_batch = 0
-                print ("epoch: ", epoch + 1)
-                minibatch_cost = 0.
-                num_minibatches = (m + self.params.train_batch_size - 1) // self.params.train_batch_size
-
-                minibatches = random_mini_batches(X_train, Y_train, self.params.train_batch_size)
- 
-                for minibatch in minibatches:
-                    # Select a minibatch
-                    (minibatch_X, minibatch_Y) = minibatch
-                    _ , temp_cost = sess.run([optimizer, cost], feed_dict={self.X: minibatch_X, self.Y: minibatch_Y})
-                    
-                    # compute training cost
-                    minibatch_cost += temp_cost / num_minibatches
-
-                    # Print result
-                    if (count_batch % 10) == 0:
-                        print("count_batch",count_batch,"temp_cost:", temp_cost)
-                    count_batch += 1
-                
-                costs.append(minibatch_cost) 
-
-                # compute dev cost
-                dev_cost = self.evaluate(X_dev, Y_dev, self.params, sess)
-                dev_costs.append(dev_cost)
-
-                if print_cost == True and epoch % 1 == 0:
-                    print ("Cost after epoch %i: %f" % (begin_at_epoch + epoch + 1, minibatch_cost))          
-                    print ("dev_Cost after epoch %i: %f" % (begin_at_epoch + epoch + 1, dev_cost))   
-
-                # Save best sess
-                if dev_cost < best_dev_cost:
-                    best_dev_cost = dev_cost
-                    best_save_path = os.path.join(model_dir, 'best_weights', 'after-epoch')
-                    best_saver.save(sess, best_save_path, global_step = begin_at_epoch + epoch + 1)
-                    if not (os.path.exists(os.path.join(model_dir,'last_weights'))):
-                        os.makedirs(os.path.join(model_dir,'last_weights'))
-                    np.save(os.path.join(model_dir,'last_weights', "best_dev_cost"), [best_dev_cost])
-
-            # Save sess and costs
-            last_save_path = os.path.join(model_dir, 'last_weights', 'after-epoch')
-            last_saver.save(sess, last_save_path, global_step = begin_at_epoch + epoch + 1)
-            np.save(os.path.join(model_dir,'last_weights', "costs"), costs)
-            np.save(os.path.join(model_dir,'last_weights', "dev_costs"), dev_costs)  
-
-    def evaluate(self, X_test, Y_test, params, sess):
-        # Evaluate the dev set. Used inside a session.
-        m = X_test.shape[0]
-        arch = self.test_arch
-        logits = arch.logits
-        cost = self.compute_cost(arch.logits, self.Y)     
-
-        minibatches = random_mini_batches(X_test, Y_test, self.params.test_batch_size)
-        minibatch_cost = 0.
-        num_minibatches = (m + self.params.test_batch_size - 1) // self.params.test_batch_size
-
-        count_batch=0
-        for minibatch in minibatches:
-            # Select a minibatch
-            (minibatch_X, minibatch_Y) = minibatch
-            temp_cost = sess.run(cost, feed_dict={self.X: minibatch_X, self.Y: minibatch_Y})
-            
-            # compute dev cost
-            minibatch_cost += temp_cost / num_minibatches
-
-            # Print result
-            #if (count_batch % 10) == 0:
-            print("dev_count_batch",count_batch,"dev_temp_cost:", temp_cost)
-            count_batch += 1
-
-        return minibatch_cost
-
-    def predict(self, X_test, Y_test, data_ab, params, restore_from):
-        # Make prediction. Used outside a session.
-        m = X_test.shape[0]
-        arch = self.test_arch
-        logits = arch.logits
-        cost = self.compute_cost(arch.logits, self.Y)
-        last_saver = tf.train.Saver(max_to_keep = 1)
-
-        with tf.Session() as sess:
-            init = tf.global_variables_initializer()
-            sess.run(init)
-            self.restoreSession(last_saver, sess, restore_from, False)
-            
-            minibatches = random_mini_batches(X_test, Y_test, self.params.test_batch_size)
-            minibatch_cost = 0.
-            num_minibatches = (m + self.params.test_batch_size - 1) // self.params.test_batch_size
-
-            count_batch = 0 
-
-            predict_logits = np.zeros((m, self.params.image_size, self.params.image_size, self.params.num_bins))
-
-            for minibatch in minibatches:
-                temp_cost, temp_logits = sess.run([cost, logits], feed_dict={self.X: X_test, self.Y: Y_test})
-                minibatch_cost += temp_cost / num_minibatches
-
-                #python will automatically handle last batch size issue
-                predict_logits[count_batch * self.params.test_batch_size : (count_batch + 1) * self.params.test_batch_size,:,:,:] = temp_logits  
-
-            predict_bins = np.argmax(predict_logits, axis = -1)
-
-            predict_bins = predict_bins.reshape(predict_bins.shape[0], predict_bins.shape[1], predict_bins.shape[2], 1)
-            predict_ab = bins2ab(predict_bins)
-            
-        return predict_bins, predict_ab, minibatch_cost

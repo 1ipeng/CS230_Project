@@ -14,7 +14,7 @@ DATA_TRAIN = ["data/cifar-10-batches-py/data_batch_1",
 			  "data/cifar-10-batches-py/data_batch_4",
 			  "data/cifar-10-batches-py/data_batch_5"]
 DATA_TEST = ["data/cifar-10-batches-py/test_batch"]
-DATA_BINS = "data/bins_529.npy"
+DATA_BINS = "data/bins_313.npy"
 
 if small:
 	DIR_TRAIN = "data/lab_result/" + str(SIZE) + "_train_lab/"

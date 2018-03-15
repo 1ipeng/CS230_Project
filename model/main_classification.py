@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 from utils import Params, bins2ab, plotLabImage, random_mini_batches
 import os
 from scipy.misc import imsave
-from classification_model_L2 import classification_8layers, model
+from classification_model_L2 import classification_8layers_model
+from train_evaluate import train_evaluate
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--restore", help="restore training from last epoch",
@@ -52,32 +53,32 @@ test_ab = test_dev_ab[test_index]
 test_bins = test_dev_bins[test_index]
 
 if args.small:
-	train_L = train_L[0:5000]
-	train_ab = train_ab[0:5000]
-	train_bins = train_bins[0:5000]
-	dev_L = dev_L[0:100]
-	dev_ab = dev_ab[0:100]
-	dev_bins = dev_bins[0:100]
+	train_L = train_L[0:100]
+	train_ab = train_ab[0:100]
+	train_bins = train_bins[0:100]
+	dev_L = dev_L[0:30]
+	dev_ab = dev_ab[0:30]
+	dev_bins = dev_bins[0:30]
 
 # Weight directory
 model_dir = "./weights_classification"
 save_path = os.path.join(model_dir, 'last_weights')
 
 # Build model
-model = model(params, classification_8layers)
+train_evaluate = train_evaluate(params, classification_8layers_model)
 
 # Train and predict
 if args.train:
 	if args.restore:
-	    model.train(train_L, train_bins, dev_L, dev_bins, model_dir, save_path)
+	    train_evaluate.train(train_L, train_bins, dev_L, dev_bins, model_dir, save_path)
 	else:
-	    model.train(train_L, train_bins, dev_L, dev_bins, model_dir)
+	    train_evaluate.train(train_L, train_bins, dev_L, dev_bins, model_dir)
 
 # Show result
 def showBestResult(dev_L, dev_bins, dev_ab):
 	plt.figure()
 	save_path = os.path.join(model_dir, 'last_weights')
-	predict_bins, predict_ab, predict_costs = model.predict(dev_L, dev_bins, dev_ab, params, save_path)
+	predict_bins, predict_ab, predict_costs = train_evaluate.predict(dev_L, dev_bins, dev_ab, save_path)
 	index_min = np.argmin(predict_costs)
 	plotLabImage(dev_L[index_min], dev_ab[index_min], (2, 1, 1))
 	plotLabImage(dev_L[index_min], predict_ab[index_min], (2, 1, 2))
@@ -86,7 +87,7 @@ def showBestResult(dev_L, dev_bins, dev_ab):
 def show5results(dev_L, dev_bins, dev_ab, start_index):
 	plt.figure()
 	save_path = os.path.join(model_dir, 'last_weights')
-	predict_bins, predict_ab, predict_cost = model.predict(dev_L[start_index:start_index + 5], dev_bins[start_index:start_index + 5], dev_ab[start_index:start_index + 5], params, save_path)
+	predict_bins, predict_ab, predict_cost = train_evaluate.predict(dev_L[start_index:start_index + 5], dev_bins[start_index:start_index + 5], dev_ab[start_index:start_index + 5], save_path)
 	count = 0
 	for i in range(5):
 	    count = count + 1
@@ -95,5 +96,14 @@ def show5results(dev_L, dev_bins, dev_ab, start_index):
 	    predict_img = plotLabImage(dev_L[start_index + i], predict_ab[i], (5, 2, count))
 	plt.show()
 
+def show1Result(dev_L, dev_bins, dev_ab, start_index):
+	plt.figure()
+	save_path = os.path.join(model_dir, 'last_weights')
+	predict_bins, predict_ab, predict_cost = train_evaluate.predict(dev_L[start_index:start_index + 1], dev_bins[start_index:start_index + 1], dev_ab[start_index:start_index + 1], save_path)
+	orig_img = plotLabImage(dev_L[start_index], dev_ab[start_index], (2, 2, 1))
+	predict_img = plotLabImage(dev_L[start_index], predict_ab[0], (2, 2, 2))
+	print predict_cost
+	plt.show()
+
 if args.predict:
-	showBestResult(dev_L, dev_bins, dev_ab)
+	show1Result(dev_L, dev_bins, dev_ab, 0)
