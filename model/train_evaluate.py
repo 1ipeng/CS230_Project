@@ -4,11 +4,12 @@ from utils import bins2ab, random_mini_batches
 import os
 
 class train_evaluate:
-    def __init__(self, params, model, weights_file = None):
+    def __init__(self, params, model, weights_file = None, model_type = 'classification'):
         # params: hyperparameter
         # model: Network model 
         self.params = params
         self.weights_file = weights_file
+        self.model_type = model_type
         self.train_model, self.test_model = self.build_model(model)
 
     def build_model(self, model):
@@ -96,7 +97,7 @@ class train_evaluate:
                     print ("Accuracy after epoch %i: %f" % (begin_at_epoch + epoch + 1, minibatch_accuracy))       
                     print ("dev_Cost after epoch %i: %f" % (begin_at_epoch + epoch + 1, dev_cost))
                     print ("dev_accuracy after epoch %i: %f" % (begin_at_epoch + epoch + 1, dev_accuracy))
-
+                
                 # Save best sess
                 if dev_accuracy > best_dev_accuracy:
                     best_dev_accuracy = dev_accuracy
@@ -142,13 +143,13 @@ class train_evaluate:
 
         return minibatch_cost, minibatch_accuracy
 
-    def predict(self, X_test, Y_test, data_ab, restore_from):
+    def predict(self, X_test, Y_test, restore_from):
         # Make prediction. Used outside a session.
         m = X_test.shape[0]
         model = self.test_model
         accuracy = model.accuracy
         logits = model.logits
-        probs = model.probs
+        # probs = model.probs
         cost = model.cost   
         last_saver = tf.train.Saver(max_to_keep = 1)
         with tf.Session() as sess:
@@ -158,14 +159,20 @@ class train_evaluate:
 
             predict_costs = np.zeros(m)
             predict_accuracy = np.zeros(m)
-            predict_logits = np.zeros((m, self.params.image_size, self.params.image_size, self.params.num_bins))
+            if self.model_type == 'classification':
+                predict_logits = np.zeros((m, self.params.image_size, self.params.image_size, self.params.num_bins))
+            else:
+                predict_logits = np.zeros((m, self.params.image_size, self.params.image_size, 2))
             # predict_probs = np.zeros((m, self.params.image_size, self.params.image_size, self.params.num_bins))
             
             for i in range(m):
                 predict_costs[i], predict_logits[i, :, :, :], check, predict_accuracy[i] = sess.run([cost, logits, model.check, accuracy], feed_dict={model.X: X_test[i:i+1], model.Y: Y_test[i:i+1]})
 
-            predict_bins = np.argmax(predict_logits, axis = -1)
-            predict_bins = predict_bins.reshape(predict_bins.shape[0], predict_bins.shape[1], predict_bins.shape[2], 1)
-            predict_ab = bins2ab(predict_bins)
-            
-        return predict_bins, predict_ab, predict_costs, predict_logits, predict_accuracy, check
+            if self.model_type == 'classification':
+                predict_bins = np.argmax(predict_logits, axis = -1)
+                predict_bins = predict_bins.reshape(predict_bins.shape[0], predict_bins.shape[1], predict_bins.shape[2], 1)
+                predict_ab = bins2ab(predict_bins)
+                return predict_bins, predict_ab, predict_costs, predict_logits, predict_accuracy, check
+            else:
+                predict_ab = predict_logits * 255. - 128
+                return predict_ab, predict_costs, predict_logits, predict_accuracy, check

@@ -25,6 +25,7 @@ class transfer_learning_model:
         self.probs = tf.nn.softmax(self.logits)
         self.cost = self.compute_cost(self.logits, self.Y)
         self.l2_cost = self.compute_l2_cost(self.logits, self.Y)
+        self.accuracy = self.compute_accuracy(self.logits, self.Y)
     
     def load_weights(self, weight_file, sess):
         weights = np.load(weight_file)
@@ -59,6 +60,13 @@ class transfer_learning_model:
         X = X / 255.
         '''
         return X
+
+    def compute_accuracy(self, logits, labels):
+        predictions = tf.argmax(logits, -1, output_type=tf.int32)
+        predictions = tf.reshape(predictions, [tf.shape(predictions)[0], self.params.image_size, self.params.image_size, 1])
+        self.check = tf.equal(labels, predictions)
+        accuracy = tf.reduce_mean(tf.cast(tf.equal(labels, predictions), tf.float32))
+        return accuracy
 
     def pretrained_convlayers(self, images):
         self.parameters = []

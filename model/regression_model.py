@@ -10,16 +10,18 @@ class regression_8layers_model:
         self.is_training = is_training
         self.activation = {}
         self.X, self.Y = self.create_placeholders()
-        normalized_X = self.normalize(self.X)
-        conv_out = self.convlayers(normalized_X)
+        normalize_X, normalize_Y = self.normalize(self.X, self.Y)
+        self.check = normalize_Y
+        conv_out = self.convlayers(normalize_X)
         deconv_out = self.deconvlayers(conv_out)
         self.logits = self.fc_layers(deconv_out)
-        self.cost = self.compute_cost(self.logits, self.Y)
-        self.l2_cost = self.compute_l2_cost(self.logits, self.Y)
+        self.cost = self.compute_cost(self.logits, normalize_Y)
+        self.l2_cost = self.compute_l2_cost(self.logits, normalize_Y)
+        self.accuracy = - self.cost
 
     def create_placeholders(self):
         X = tf.placeholder(tf.float32, shape = (None, self.params.image_size, self.params.image_size, 1))
-        Y = tf.placeholder(tf.int32, shape = (None, self.params.image_size, self.params.image_size, 2))
+        Y = tf.placeholder(tf.float32, shape = (None, self.params.image_size, self.params.image_size, 2))
         return X, Y
 
     def compute_l2_cost(self, logits, labels):
@@ -37,10 +39,11 @@ class regression_8layers_model:
         cost = tf.reduce_mean(tf.norm((flat_labels - flat_logits), axis = 1, keepdims=True) ** 2)
         return cost
 
-    def normalize(self, data_L):
-        input_L = tf.cast(data_L, tf.float32)
-        input_L = input_L / tf.constant(100.)
-        return input_L
+    def normalize(self, X, Y):
+        X = tf.cast(X, tf.float32)
+        X = X / tf.constant(100.)
+        Y = (Y + tf.constant(128.)) / tf.constant(255.)
+        return X, Y
 
     def convlayers(self, out):
         # Define the number of channels of each convolution block
@@ -106,5 +109,5 @@ class regression_8layers_model:
             out = tf.layers.dropout(inputs=out, rate=self.params.dropout_rate, training=self.is_training)
 
         out = tf.sigmoid(out)
-        assert out.get_shape().as_list() == [None, params.image_size, params.image_size, 2]
+        assert out.get_shape().as_list() == [None, self.params.image_size, self.params.image_size, 2]
         return out
