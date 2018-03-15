@@ -22,6 +22,7 @@ class transfer_learning_model:
         deconv_out = self.deconvlayers(conv_out)
 
         self.logits = self.fc_layers(deconv_out)
+        self.probs = tf.nn.softmax(self.logits)
         self.cost = self.compute_cost(self.logits, self.Y)
         self.l2_cost = self.compute_l2_cost(self.logits, self.Y)
     

@@ -139,6 +139,7 @@ class train_evaluate:
         m = X_test.shape[0]
         model = self.test_model
         logits = model.logits
+        probs = model.probs
         cost = model.cost   
         last_saver = tf.train.Saver(max_to_keep = 1)
         with tf.Session() as sess:
@@ -148,9 +149,10 @@ class train_evaluate:
 
             predict_costs = np.zeros(m)
             predict_logits = np.zeros((m, self.params.image_size, self.params.image_size, self.params.num_bins))
+            predict_probs = np.zeros((m, self.params.image_size, self.params.image_size, self.params.num_bins))
             
             for i in range(m):
-                predict_costs[i], predict_logits[i, :, :, :] = sess.run([cost, logits], feed_dict={model.X: X_test[i:i+1], model.Y: Y_test[i:i+1]})
+                predict_costs[i], predict_logits[i, :, :, :], predict_probs[i, :, :, :] = sess.run([cost, logits, probs], feed_dict={model.X: X_test[i:i+1], model.Y: Y_test[i:i+1]})
 
             predict_bins = np.argmax(predict_logits, axis = -1)
             predict_bins = predict_bins.reshape(predict_bins.shape[0], predict_bins.shape[1], predict_bins.shape[2], 1)

@@ -143,4 +143,3 @@ def random_mini_batches(X, Y, mini_batch_size = 64):
         mini_batches.append(mini_batch)
     
     return mini_batches
-
