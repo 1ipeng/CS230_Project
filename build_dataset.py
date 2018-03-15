@@ -7,6 +7,7 @@ import os
 
 SIZE = 100
 small = (sys.argv[1] == "small")
+superlarge = (sys.argv[1] == "superlarge")
 
 DATA_TRAIN = ["data/cifar-10-batches-py/data_batch_1", 
 			  "data/cifar-10-batches-py/data_batch_2",
@@ -48,24 +49,33 @@ def parseImages(filenames, directory, bin_dict, bin_size):
 
 		for i in range(m):
 			img = raw_images[i].reshape(3, 32, 32).transpose([1, 2, 0])
-			Lab = color.rgb2lab(img)
-			L = Lab[:, :, 0]
-			L = L.reshape(L.shape[0], L.shape[1], 1)
-			ab = Lab[:, :, 1:3]
-			bins = ab2bins(ab[:, :, 0], ab[:, :, 1])
-			bins = bins.reshape(bins.shape[0], bins.shape[1], 1)
-			channel_L.append(L)
-			channel_ab.append(ab)
-			labels.append(batch_labels[i])
-			bins_ab.append(bins)
-			gray = color.grey2rgb(color.rgb2grey(img))
-			grayRGB.append(gray)
 
-			count += 1
-			print(count)
+			def seperate(img):
+				Lab = color.rgb2lab(img)
+				L = Lab[:, :, 0]
+				L = L.reshape(L.shape[0], L.shape[1], 1)
+				ab = Lab[:, :, 1:3]
+				bins = ab2bins(ab[:, :, 0], ab[:, :, 1])
+				bins = bins.reshape(bins.shape[0], bins.shape[1], 1)
+				gray = color.grey2rgb(color.rgb2grey(img))
 
+				channel_L.append(L)
+				channel_ab.append(ab)
+				labels.append(batch_labels[i])
+				bins_ab.append(bins)
+				grayRGB.append(gray)
+				count += 1
+				print(count)
+
+			if not superlarge:
+				seperate(img)
+			else:
+				seperate(img)
+				seperate(np.fliplr(img))
+				seperate(np.flipud(img))
+				seperate(np.flipud(np.fliplr(img)))
+			
 	labels = np.array(labels).reshape(len(labels), -1)
-	channel_ab = np.array(channel_ab)
 
 	if not(os.path.exists(directory)):
 		os.makedirs(directory)
@@ -79,6 +89,7 @@ def parseImages(filenames, directory, bin_dict, bin_size):
 bin_size = 10
 bin_dict = np.load(DATA_BINS).tolist()
 train_L, train_ab, train_labels, train_bins = parseImages(DATA_TRAIN, DIR_TRAIN, bin_dict, bin_size)
+superlarge = False
 test_L, test_ab, test_labels, test_bins = parseImages(DATA_TEST, DIR_TEST, bin_dict, bin_size)
 print("Done building dataset")
 

@@ -14,6 +14,8 @@ def argument_parser(argv):
                         action="store_true")
     parser.add_argument("--toy", help="train on toy dataset",
                         action="store_true")
+    parser.add_argument("--superlarge", help="train on superlarge dataset",
+                        action="store_true")
     if len(argv) < 2:
         parser.print_usage()
         exit()
@@ -24,6 +26,9 @@ def load_training_set(args, size = None, seed = None):
     DIR_TRAIN = "../data/lab_result/train_lab/"
     if args.toy:
         DIR_TRAIN = "../data/lab_result/100_train_lab/"  
+    if args.superlarge:
+        DIR_TRAIN = "../data/lab_result/super_train_lab/"
+
 
     if seed is not None:
         np.random.seed(seed)
@@ -33,8 +38,11 @@ def load_training_set(args, size = None, seed = None):
             size = 100
         elif args.small:
             size = 5000
+        elif args.superlarge:
+            size = 200000
         else:
             size = 50000
+
 
     train_L = np.load(DIR_TRAIN + "L.npy")
     train_ab = np.load(DIR_TRAIN + "ab.npy")
