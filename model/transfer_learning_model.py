@@ -55,7 +55,9 @@ class transfer_learning_model:
         mean = tf.constant([123.68, 116.779, 103.939], dtype=tf.float32, shape=[1, 1, 1, 3], name='img_mean')
         X = X - mean
         '''
+        '''
         X = X / 255.
+        '''
         return X
 
     def pretrained_convlayers(self, images):
