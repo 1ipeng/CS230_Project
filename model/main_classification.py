@@ -62,6 +62,9 @@ if args.small:
 
 # Weight directory
 model_dir = "./weights_classification"
+if not os.path.exists(model_dir):
+	os.mkdir(model_dir)
+
 save_path = os.path.join(model_dir, 'last_weights')
 
 # Build model
@@ -102,7 +105,7 @@ def show1Result(dev_L, dev_bins, dev_ab, start_index):
 	predict_bins, predict_ab, predict_cost = train_evaluate.predict(dev_L[start_index:start_index + 1], dev_bins[start_index:start_index + 1], dev_ab[start_index:start_index + 1], save_path)
 	orig_img = plotLabImage(dev_L[start_index], dev_ab[start_index], (2, 2, 1))
 	predict_img = plotLabImage(dev_L[start_index], predict_ab[0], (2, 2, 2))
-	print predict_cost
+	print(predict_cost)
 	plt.show()
 
 if args.predict:
