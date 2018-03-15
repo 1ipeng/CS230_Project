@@ -81,15 +81,15 @@ if args.small:
 	dev_grayRGB = dev_grayRGB[0:500]
 
 if args.toy:
-	train_L = train_L[0:10]
-	train_ab = train_ab[0:10]
-	train_bins = train_bins[0:10]
-	train_grayRGB = train_grayRGB[0:10]
+	train_L = train_L[0:100]
+	train_ab = train_ab[0:100]
+	train_bins = train_bins[0:100]
+	train_grayRGB = train_grayRGB[0:100]
 
-	dev_L = dev_L[1:2]
-	dev_ab = dev_ab[1:2]
-	dev_bins = dev_bins[1:2]
-	dev_grayRGB = dev_grayRGB[1:2]
+	dev_L = dev_L[0:30]
+	dev_ab = dev_ab[0:30]
+	dev_bins = dev_bins[0:30]
+	dev_grayRGB = dev_grayRGB[0:30]
 
 
 # Weight directory
