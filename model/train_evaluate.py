@@ -25,6 +25,7 @@ class train_evaluate:
         costs = []
         dev_costs = []
         best_dev_accuracy = float('-inf')
+        dev_accuracies = []
         if restore_from is not None:
             if os.path.isdir(restore_from):
                 sess_path = tf.train.latest_checkpoint(restore_from)
@@ -34,9 +35,10 @@ class train_evaluate:
             if is_training:
                 costs = np.load(os.path.join(restore_from, "costs.npy")).tolist()
                 dev_costs = np.load(os.path.join(restore_from, "dev_costs.npy")).tolist()
+                dev_accuracies = np.load(os.path.join(restore_from, "dev_accuracies.npy")).tolist()
                 best_dev_accuracy = np.load(os.path.join(restore_from,"best_dev_accuracy.npy"))[0]
 
-        return begin_at_epoch, costs, dev_costs, best_dev_accuracy
+        return begin_at_epoch, costs, dev_costs, best_dev_accuracy, dev_accuracies
 
     def train(self, X_train, Y_train, X_dev, Y_dev, model_dir, restore_from = None, print_cost = True):
         m = X_train.shape[0]
@@ -61,7 +63,7 @@ class train_evaluate:
             init = tf.global_variables_initializer()
             sess.run(init)
 
-            begin_at_epoch, costs, dev_costs, best_dev_accuracy = self.restoreSession(last_saver, sess, restore_from, is_training = True)
+            begin_at_epoch, costs, dev_costs, best_dev_accuracy, dev_accuracies = self.restoreSession(last_saver, sess, restore_from, is_training = True)
             
             for epoch in range(self.params.num_epochs):
                 count_batch = 0
@@ -91,6 +93,7 @@ class train_evaluate:
                 # compute dev cost
                 dev_cost, dev_accuracy = self.evaluate(X_dev, Y_dev, sess)
                 dev_costs.append(dev_cost)
+                dev_accuracies.append(dev_accuracies)
 
                 if print_cost == True and epoch % 1 == 0:
                     print ("Cost after epoch %i: %f" % (begin_at_epoch + epoch + 1, minibatch_cost))    
@@ -112,6 +115,7 @@ class train_evaluate:
             last_saver.save(sess, last_save_path, global_step = begin_at_epoch + epoch + 1)
             np.save(os.path.join(model_dir,'last_weights', "costs"), costs)
             np.save(os.path.join(model_dir,'last_weights', "dev_costs"), dev_costs)  
+            np.save(os.path.join(model_dir,'last_weights', "dev_accuracies"), dev_accuracies) 
 
     def evaluate(self, X_test, Y_test, sess):
         # Evaluate the dev set. Used inside a session.
