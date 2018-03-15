@@ -10,8 +10,8 @@ from transfer_learning_model import transfer_learning_model
 args = argument_parser(sys.argv)
 
 params = Params("../experiments/base_model/params.json")
-train_L, train_ab, train_bins, train_grayRGB = load_training_set(args, size = 1, seed = 2)
-dev_L, dev_ab, dev_bins, dev_grayRGB, test_L, test_ab, test_bins, test_grayRGB = load_dev_test_set(args, dev_size = 1, seed = 2)
+train_L, train_ab, train_bins, train_grayRGB = load_training_set(args, seed = 2)
+dev_L, dev_ab, dev_bins, dev_grayRGB, test_L, test_ab, test_bins, test_grayRGB = load_dev_test_set(args, seed = 2)
 
 # Weight directory
 model_dir = "./weights_transfer_learning"
