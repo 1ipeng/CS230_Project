@@ -33,7 +33,7 @@ if args.train:
 # Show result
 def showBestResult(X, dev_L, dev_bins, dev_ab, save_path):
     plt.figure()
-    predict_bins, predict_ab, predict_costs = train_evaluate.predict(X, dev_bins, dev_ab, save_path)
+    predict_bins, predict_ab, predict_costs, predict_logits = train_evaluate.predict(X, dev_bins, dev_ab, save_path)
     index_min = np.argmin(predict_costs)
     plotLabImage(dev_L[index_min], dev_ab[index_min], (2, 1, 1))
     plotLabImage(dev_L[index_min], predict_ab[index_min], (2, 1, 2))
@@ -42,7 +42,7 @@ def showBestResult(X, dev_L, dev_bins, dev_ab, save_path):
 
 def show5Results(X, dev_L, dev_bins, dev_ab, start_index, save_path):
     plt.figure()
-    predict_bins, predict_ab, predict_costs = train_evaluate.predict(X[start_index:start_index + 5], dev_bins[start_index:start_index + 5], dev_ab[start_index:start_index + 5], save_path)
+    predict_bins, predict_ab, predict_costs, predict_logits = train_evaluate.predict(X[start_index:start_index + 5], dev_bins[start_index:start_index + 5], dev_ab[start_index:start_index + 5], save_path)
     count = 0
     for i in range(5):
         count = count + 1
@@ -54,7 +54,7 @@ def show5Results(X, dev_L, dev_bins, dev_ab, start_index, save_path):
 
 def show1Result(X, dev_L, dev_bins, dev_ab, start_index, save_path):
     plt.figure()
-    predict_bins, predict_ab, predict_cost = train_evaluate.predict(X[start_index:start_index + 1], dev_bins[start_index:start_index + 1], dev_ab[start_index:start_index + 1], save_path)
+    predict_bins, predict_ab, predict_cost, predict_logits = train_evaluate.predict(X[start_index:start_index + 1], dev_bins[start_index:start_index + 1], dev_ab[start_index:start_index + 1], save_path)
     orig_img = plotLabImage(dev_L[start_index], dev_ab[start_index], (2, 2, 1))
     predict_img = plotLabImage(dev_L[start_index], predict_ab[0], (2, 2, 2))
     print(predict_bins[:,0,:,:])
