@@ -1,14 +1,15 @@
 {
-    "learning_rate": 1e-4,
+    "learning_rate": 1e-3,
     "train_batch_size": 32,
     "test_batch_size": 16,
-    "num_epochs": 100,
+    "num_epochs": 50,
 
     "num_channels": 16,
     "use_batch_norm": true,
     "bn_momentum": 0.9,
     "dropout_rate": 0,
-
+    "train_all_variables":false,
+    
     "image_size": 32,
     "reg_constant": 0.0,
     "num_bins": 313

@@ -68,15 +68,14 @@ class classification_8layers_model:
                     d = dilation[i]
                     out = tf.layers.conv2d(out, c, 3, padding='same', strides = (s, s), dilation_rate = (d, d), kernel_regularizer= tf.contrib.layers.l2_regularizer(self.params.reg_constant))
                     out = tf.nn.relu(out)
-                    out = tf.layers.dropout(inputs=out, rate=self.params.dropout_rate, training=is_training)
+                    out = tf.layers.dropout(inputs=out, rate=self.params.dropout_rate, training=self.is_training)
 
             if self.params.use_batch_norm:
                 bn_name = "bn_" + str(i+1)
                 with tf.variable_scope(bn_name):
-                    out = tf.layers.batch_normalization(out, momentum=bn_momentum, training=is_training)
+                    out = tf.layers.batch_normalization(out, momentum=bn_momentum, training=self.is_training)
 
             self.activation[block_name] = out
-            self.out = out
 
         assert out.get_shape().as_list() == [None, self.params.image_size / 8, self.params.image_size / 8, 512]
         return out

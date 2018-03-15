@@ -4,10 +4,11 @@ from utils import bins2ab, random_mini_batches
 import os
 
 class train_evaluate:
-    def __init__(self, params, model):
+    def __init__(self, params, model, weights_file = None):
         # params: hyperparameter
         # model: Network model 
         self.params = params
+        self.weights_file = weights_file
         self.train_model, self.test_model = self.build_model(model)
 
     def build_model(self, model):
@@ -52,6 +53,9 @@ class train_evaluate:
         last_saver = tf.train.Saver(max_to_keep = 1)
         best_saver = tf.train.Saver(max_to_keep = 1)
         with tf.Session() as sess:
+            if self.weights_file is not None:
+                model.load_weights(self.weights_file, sess)
+
             init = tf.global_variables_initializer()
             sess.run(init)
 
