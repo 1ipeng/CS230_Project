@@ -97,12 +97,16 @@ def ab2bins(ab):
     bins = bins.reshape(bins.shape[0], bins.shape[1], 1)
     return bins
 
-def plotLabImage(L, ab, position):
-    image = np.concatenate((L, ab), axis = -1)
+def plotLabImage(L, ab, position, grayScale = False):
     r, w, i = position
+    image = np.concatenate((L, ab), axis = -1)
     plt.subplot(r, w, i)
     RGB = color.lab2rgb(image)
-    plt.imshow(RGB)
+    if grayScale:
+        RGB = color.rgb2gray(RGB)
+        plt.imshow(RGB, cmap = "gray")
+    else:
+        plt.imshow(RGB)
     return RGB
 
 def random_mini_batches(X, Y, mini_batch_size = 64):

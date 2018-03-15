@@ -17,6 +17,7 @@ class classification_8layers_model:
         self.probs = tf.nn.softmax(self.logits)
         self.cost = self.compute_cost(self.logits, self.Y)
         self.l2_cost = self.compute_l2_cost(self.logits, self.Y)
+        self.accuracy = self.compute_accuracy(self.logits, self.Y)
 
     def create_placeholders(self):
         X = tf.placeholder(tf.float32, shape = (None, self.params.image_size, self.params.image_size, 1))
@@ -33,6 +34,13 @@ class classification_8layers_model:
         # Softmax loss
         cost = tf.losses.sparse_softmax_cross_entropy(logits = logits, labels = labels)
         return cost
+
+    def compute_accuracy(self, logits, labels):
+        predictions = tf.argmax(logits, -1, output_type=tf.int32)
+        predictions = tf.reshape(predictions, [tf.shape(predictions)[0], self.params.image_size, self.params.image_size, 1])
+        self.check = tf.equal(labels, predictions)
+        accuracy = tf.reduce_mean(tf.cast(tf.equal(labels, predictions), tf.float32))
+        return accuracy
 
     def normalize(self, data_L):
         input_L = tf.cast(data_L, tf.float32)

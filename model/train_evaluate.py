@@ -23,7 +23,7 @@ class train_evaluate:
         begin_at_epoch = 0
         costs = []
         dev_costs = []
-        best_dev_cost = float('inf')
+        best_dev_accuracy = float('-inf')
         if restore_from is not None:
             if os.path.isdir(restore_from):
                 sess_path = tf.train.latest_checkpoint(restore_from)
@@ -33,15 +33,16 @@ class train_evaluate:
             if is_training:
                 costs = np.load(os.path.join(restore_from, "costs.npy")).tolist()
                 dev_costs = np.load(os.path.join(restore_from, "dev_costs.npy")).tolist()
-                best_dev_cost = np.load(os.path.join(restore_from,"best_dev_cost.npy"))[0]
+                best_dev_accuracy = np.load(os.path.join(restore_from,"best_dev_accuracy.npy"))[0]
 
-        return begin_at_epoch, costs, dev_costs, best_dev_cost
+        return begin_at_epoch, costs, dev_costs, best_dev_accuracy
 
     def train(self, X_train, Y_train, X_dev, Y_dev, model_dir, restore_from = None, print_cost = True):
         m = X_train.shape[0]
         
         model = self.train_model
         l2_cost = model.l2_cost
+        accuracy = model.accuracy
         cost = model.cost
 
         if self.params.use_batch_norm:
@@ -59,12 +60,13 @@ class train_evaluate:
             init = tf.global_variables_initializer()
             sess.run(init)
 
-            begin_at_epoch, costs, dev_costs, best_dev_cost = self.restoreSession(last_saver, sess, restore_from, is_training = True)
+            begin_at_epoch, costs, dev_costs, best_dev_accuracy = self.restoreSession(last_saver, sess, restore_from, is_training = True)
             
             for epoch in range(self.params.num_epochs):
                 count_batch = 0
                 print ("epoch: ", epoch + 1)
                 minibatch_cost = 0.
+                minibatch_accuracy = 0.
                 num_minibatches = (m + self.params.train_batch_size - 1) // self.params.train_batch_size
 
                 minibatches = random_mini_batches(X_train, Y_train, self.params.train_batch_size)
@@ -72,34 +74,37 @@ class train_evaluate:
                 for minibatch in minibatches:
                     # Select a minibatch
                     (minibatch_X, minibatch_Y) = minibatch
-                    _ , temp_cost = sess.run([optimizer, cost], feed_dict={model.X: minibatch_X, model.Y: minibatch_Y})
+                    _ , temp_cost, temp_accuracy = sess.run([optimizer, cost, accuracy], feed_dict={model.X: minibatch_X, model.Y: minibatch_Y})
                     
                     # compute training cost
                     minibatch_cost += temp_cost / num_minibatches
+                    minibatch_accuracy += temp_accuracy / num_minibatches
 
                     # Print result
                     if (count_batch % 10) == 0:
-                        print("count_batch",count_batch,"temp_cost:", temp_cost)
+                        print("count_batch",count_batch,"temp_cost:", temp_cost, "temp_accuracy:", temp_accuracy)
                     count_batch += 1
                 
                 costs.append(minibatch_cost) 
 
                 # compute dev cost
-                dev_cost = self.evaluate(X_dev, Y_dev, sess)
+                dev_cost, dev_accuracy = self.evaluate(X_dev, Y_dev, sess)
                 dev_costs.append(dev_cost)
 
                 if print_cost == True and epoch % 1 == 0:
-                    print ("Cost after epoch %i: %f" % (begin_at_epoch + epoch + 1, minibatch_cost))          
-                    print ("dev_Cost after epoch %i: %f" % (begin_at_epoch + epoch + 1, dev_cost))   
+                    print ("Cost after epoch %i: %f" % (begin_at_epoch + epoch + 1, minibatch_cost))    
+                    print ("Accuracy after epoch %i: %f" % (begin_at_epoch + epoch + 1, minibatch_accuracy))       
+                    print ("dev_Cost after epoch %i: %f" % (begin_at_epoch + epoch + 1, dev_cost))
+                    print ("dev_accuracy after epoch %i: %f" % (begin_at_epoch + epoch + 1, dev_accuracy))
 
                 # Save best sess
-                if dev_cost < best_dev_cost:
-                    best_dev_cost = dev_cost
+                if dev_accuracy > best_dev_accuracy:
+                    best_dev_accuracy = dev_accuracy
                     best_save_path = os.path.join(model_dir, 'best_weights', 'after-epoch')
                     best_saver.save(sess, best_save_path, global_step = begin_at_epoch + epoch + 1)
                     if not (os.path.exists(os.path.join(model_dir,'last_weights'))):
                         os.makedirs(os.path.join(model_dir,'last_weights'))
-                    np.save(os.path.join(model_dir,'last_weights', "best_dev_cost"), [best_dev_cost])
+                    np.save(os.path.join(model_dir,'last_weights', "best_dev_accuracy"), [best_dev_accuracy])
 
             # Save sess and costs
             last_save_path = os.path.join(model_dir, 'last_weights', 'after-epoch')
@@ -111,33 +116,37 @@ class train_evaluate:
         # Evaluate the dev set. Used inside a session.
         m = X_test.shape[0]
         model = self.test_model
+        accuracy = model.accuracy
         logits = model.logits
         cost = model.cost     
 
         minibatches = random_mini_batches(X_test, Y_test, self.params.test_batch_size)
         minibatch_cost = 0.
+        minibatch_accuracy = 0.
         num_minibatches = (m + self.params.test_batch_size - 1) // self.params.test_batch_size
 
         count_batch=0
         for minibatch in minibatches:
             # Select a minibatch
             (minibatch_X, minibatch_Y) = minibatch
-            temp_cost = sess.run(cost, feed_dict={model.X: minibatch_X, model.Y: minibatch_Y})
+            temp_cost, temp_accuracy = sess.run([cost, accuracy], feed_dict={model.X: minibatch_X, model.Y: minibatch_Y})
             
             # compute dev cost
             minibatch_cost += temp_cost / num_minibatches
+            minibatch_accuracy += temp_accuracy / num_minibatches
 
             # Print result
             #if (count_batch % 10) == 0:
-            print("dev_count_batch",count_batch,"dev_temp_cost:", temp_cost)
+            print("dev_count_batch",count_batch,"dev_temp_cost:", temp_cost, "dev_temp_accuracy:", temp_accuracy)
             count_batch += 1
 
-        return minibatch_cost
+        return minibatch_cost, minibatch_accuracy
 
     def predict(self, X_test, Y_test, data_ab, restore_from):
         # Make prediction. Used outside a session.
         m = X_test.shape[0]
         model = self.test_model
+        accuracy = model.accuracy
         logits = model.logits
         probs = model.probs
         cost = model.cost   
@@ -148,14 +157,15 @@ class train_evaluate:
             self.restoreSession(last_saver, sess, restore_from, False)
 
             predict_costs = np.zeros(m)
+            predict_accuracy = np.zeros(m)
             predict_logits = np.zeros((m, self.params.image_size, self.params.image_size, self.params.num_bins))
-            predict_probs = np.zeros((m, self.params.image_size, self.params.image_size, self.params.num_bins))
+            # predict_probs = np.zeros((m, self.params.image_size, self.params.image_size, self.params.num_bins))
             
             for i in range(m):
-                predict_costs[i], predict_logits[i, :, :, :], predict_probs[i, :, :, :] = sess.run([cost, logits, probs], feed_dict={model.X: X_test[i:i+1], model.Y: Y_test[i:i+1]})
+                predict_costs[i], predict_logits[i, :, :, :], check, predict_accuracy[i] = sess.run([cost, logits, model.check, accuracy], feed_dict={model.X: X_test[i:i+1], model.Y: Y_test[i:i+1]})
 
             predict_bins = np.argmax(predict_logits, axis = -1)
             predict_bins = predict_bins.reshape(predict_bins.shape[0], predict_bins.shape[1], predict_bins.shape[2], 1)
             predict_ab = bins2ab(predict_bins)
             
-        return predict_bins, predict_ab, predict_costs
+        return predict_bins, predict_ab, predict_costs, predict_logits, predict_accuracy, check

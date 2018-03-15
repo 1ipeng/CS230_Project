@@ -71,7 +71,7 @@ if args.predict:
 	# showBestResult(dev_grayRGB, dev_L, dev_bins, dev_ab)
 	# showResult(dev_grayRGB, dev_L, dev_bins, dev_ab, 20, last_path)
 	# show5Results(dev_grayRGB, dev_L, dev_bins, dev_ab, 10, best_path)
-	# show5Results(train_grayRGB, train_L, train_bins, train_ab, 10, last_path)
-	show1Result(dev_grayRGB, dev_L, dev_bins, dev_ab, 10, last_path)
-	# show1Result(train_grayRGB, train_L, train_bins, train_ab, 0, last_path)
+	show5Results(train_grayRGB, train_L, train_bins, train_ab, 10, last_path)
+	# show1Result(dev_grayRGB, dev_L, dev_bins, dev_ab, 10, last_path)
+	# show1Result(train_grayRGB, train_L, train_bins, train_ab, 10, last_path)
 

@@ -6,15 +6,16 @@ import os
 from classification_model_L2 import classification_8layers_model
 from train_evaluate import train_evaluate
 from transfer_learning_model import transfer_learning_model
+import numpy as np
 
 args = argument_parser(sys.argv)
 
 params = Params("../experiments/base_model/params.json")
-train_L, train_ab, train_bins, train_grayRGB = load_training_set(args, seed = 2)
-dev_L, dev_ab, dev_bins, dev_grayRGB, test_L, test_ab, test_bins, test_grayRGB = load_dev_test_set(args, seed = 2)
+train_L, train_ab, train_bins, train_grayRGB = load_training_set(args, seed = 110)
+dev_L, dev_ab, dev_bins, dev_grayRGB, test_L, test_ab, test_bins, test_grayRGB = load_dev_test_set(args, seed = 110)
 
 # Weight directory
-model_dir = "./weights_transfer_learning"
+model_dir = "./weights_classification"
 if not os.path.exists(model_dir):
 	os.mkdir(model_dir)
 best_path = os.path.join(model_dir, 'best_weights')
@@ -54,13 +55,18 @@ def show5Results(X, dev_L, dev_bins, dev_ab, start_index, save_path):
 
 def show1Result(X, dev_L, dev_bins, dev_ab, start_index, save_path):
     plt.figure()
-    predict_bins, predict_ab, predict_cost, predict_logits = train_evaluate.predict(X[start_index:start_index + 1], dev_bins[start_index:start_index + 1], dev_ab[start_index:start_index + 1], save_path)
-    orig_img = plotLabImage(dev_L[start_index], dev_ab[start_index], (2, 2, 1))
-    predict_img = plotLabImage(dev_L[start_index], predict_ab[0], (2, 2, 2))
+    predict_bins, predict_ab, predict_cost, predict_logits, predict_accuracy, check = train_evaluate.predict(X[start_index:start_index + 1], dev_bins[start_index:start_index + 1], dev_ab[start_index:start_index + 1], save_path)
+    orig_img = plotLabImage(dev_L[start_index], dev_ab[start_index], (1, 3, 1))
+    gray_img = plotLabImage(dev_L[start_index], dev_ab[start_index], (1, 3, 2), grayScale = True)
+    predict_img = plotLabImage(dev_L[start_index], predict_ab[0], (1, 3, 3))
+
     print(predict_bins[:,0,:,:])
     print(dev_bins[:,0,:,:])
     # print(predict_logits[:,0,0,:])
     print(predict_cost)
+
+    print(np.sum(predict_bins == dev_bins))
+    print(predict_accuracy)
     plt.show()
 
 if args.predict:
@@ -68,5 +74,6 @@ if args.predict:
 	# showResult(dev_L, dev_L, dev_bins, dev_ab, 20, last_path)
 	# show5Results(dev_L, dev_L, dev_bins, dev_ab, 10, best_path)
 	# show5Results(train_L, train_L, train_bins, train_ab, 0, last_path)
-	show1Result(train_L, train_L, train_bins, train_ab, 0, last_path)
+	# show1Result(train_L, train_L, train_bins, train_ab, 0, last_path)
+    show1Result(dev_L, dev_L, dev_bins, dev_ab, 0, last_path)
 	
