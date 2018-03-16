@@ -20,7 +20,7 @@ DATA_BINS = "data/bins_313.npy"
 if small:
 	DIR_TRAIN = "data/lab_result/" + str(SIZE) + "_train_lab/"
 	DIR_TEST = "data/lab_result/" + str(SIZE) + "_test_lab/"
-is superlarge:
+if superlarge:
 	DIR_TRAIN = "data/lab_result/super_train_lab/"
 	DIR_TEST = "data/lab_result/super_test_lab/"
 else:
