@@ -65,17 +65,17 @@ def show1Result(X, Y, dev_L, dev_bins, dev_ab, start_index, save_path):
     plt.show()
 
 if args.predict:
-    X = dev_L
-    Y = dev_ab
-    # showBestResult(X[50:60], Y[50:60], dev_L[50:60], dev_bins[50:60], dev_ab[50:60], last_path)
-	# show5Results(dev_L, dev_L, dev_bins, dev_ab, 10, best_path)
-    show1Result(X, Y, dev_L, dev_bins, dev_ab, 30, last_path)
+    # X = dev_L
+    # Y = dev_ab
+    # showBestResult(X[0:10], Y[0:10], dev_L[0:10], dev_bins[0:10], dev_ab[0:10], last_path)
+    # show5Results(X, Y, dev_L, dev_bins, dev_ab, 0, last_path)
+    # show1Result(X, Y, dev_L, dev_bins, dev_ab, 10, last_path)
 
    
-    # X = train_L
-    # Y = train_ab
+    X = train_L
+    Y = train_ab
     # showBestResult(X, Y, train_L, train_bins, train_ab, best_path)
-    # show5Results(train_L, train_L, train_bins, train_ab, 10, best_path)
+    show5Results(X, Y, train_L, train_bins, train_ab, 10, last_path)
     # show1Result(X, Y, train_L, train_bins, train_ab, 0, last_path)
 
     

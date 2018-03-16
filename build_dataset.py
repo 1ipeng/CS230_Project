@@ -76,7 +76,6 @@ def parseImages(filenames, directory, bin_dict, bin_size):
 				seperate(img)
 				seperate(np.fliplr(img))
 				seperate(np.flipud(img))
-				seperate(np.flipud(np.fliplr(img)))
 			
 	labels = np.array(labels).reshape(len(labels), -1)
 
