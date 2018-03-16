@@ -60,7 +60,10 @@ def load_training_set(args, size = None, seed = None):
 
 def load_dev_test_set(args, dev_size = None, seed = None):
     DIR_TEST = "../data/lab_result/test_lab/"
-    DIR_TEST = "../data/lab_result/100_test_lab/"
+    if args.toy:
+        DIR_TEST = "../data/lab_result/100_test_lab/"
+    if args.superlarge:
+        DIR_TEST = "../data/lab_result/super_test_lab/"
 
     if seed is not None:
         np.random.seed(seed)
