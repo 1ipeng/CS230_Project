@@ -38,7 +38,7 @@ def parseImages(filenames, directory, bin_dict, bin_size):
 	labels = []
 	bins_ab = []
 	grayRGB = []
-	count = 0
+	count = [0]
 	
 	for file in filenames:
 		batch = unpickle(file)
@@ -67,8 +67,8 @@ def parseImages(filenames, directory, bin_dict, bin_size):
 				labels.append(batch_labels[i])
 				bins_ab.append(bins)
 				grayRGB.append(gray)
-				count += 1
-				print(count)
+				count[0] += 1
+				print(count[0])
 
 			if not superlarge:
 				seperate(img)
