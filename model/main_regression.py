@@ -34,7 +34,7 @@ if args.train:
 # Show result
 def showBestResult(X, Y, dev_L, dev_bins, dev_ab, save_path):
     plt.figure()
-    predict_ab, predict_costs, predict_logits, predict_accuracy, check = train_evaluate.predict(X, Y, save_path)
+    predict_ab, predict_costs, predict_logits, predict_accuracy = train_evaluate.predict(X, Y, save_path)
     index_min = np.argmin(predict_costs)
     plotLabImage(dev_L[index_min], dev_ab[index_min], (2, 1, 1))
     plotLabImage(dev_L[index_min], predict_ab[index_min], (2, 1, 2))
@@ -43,7 +43,7 @@ def showBestResult(X, Y, dev_L, dev_bins, dev_ab, save_path):
 
 def show5Results(X, Y, dev_L, dev_bins, dev_ab, start_index, save_path):
     plt.figure()
-    predict_ab, predict_costs, predict_logits, predict_accuracy, check = train_evaluate.predict(X[start_index:start_index + 5], Y[start_index:start_index + 5], save_path)
+    predict_ab, predict_costs, predict_logits, predict_accuracy = train_evaluate.predict(X[start_index:start_index + 5], Y[start_index:start_index + 5], save_path)
     count = 0
     for i in range(5):
         count = count + 1
@@ -55,7 +55,7 @@ def show5Results(X, Y, dev_L, dev_bins, dev_ab, start_index, save_path):
 
 def show1Result(X, Y, dev_L, dev_bins, dev_ab, start_index, save_path):
     plt.figure()
-    predict_ab, predict_cost, predict_logits, predict_accuracy, check = train_evaluate.predict(X[start_index:start_index + 1], Y[start_index:start_index + 1], save_path)
+    predict_ab, predict_cost, predict_logits, predict_accuracy = train_evaluate.predict(X[start_index:start_index + 1], Y[start_index:start_index + 1], save_path)
     orig_img = plotLabImage(dev_L[start_index], dev_ab[start_index], (1, 3, 1))
     gray_img = plotLabImage(dev_L[start_index], dev_ab[start_index], (1, 3, 2), grayScale = True)
     predict_img = plotLabImage(dev_L[start_index], predict_ab[0], (1, 3, 3))
@@ -65,18 +65,18 @@ def show1Result(X, Y, dev_L, dev_bins, dev_ab, start_index, save_path):
     plt.show()
 
 if args.predict:
-    # X = dev_L
-    # Y = dev_ab
-    # showBestResult(X[20:30], Y[20:30], dev_L[20:30], dev_bins[20:30], dev_ab[20:30], last_path)
+    X = dev_L
+    Y = dev_ab
+    # showBestResult(X[50:60], Y[50:60], dev_L[50:60], dev_bins[50:60], dev_ab[50:60], last_path)
 	# show5Results(dev_L, dev_L, dev_bins, dev_ab, 10, best_path)
-    # show1Result(X, Y, dev_L, dev_bins, dev_ab, 20, last_path)
+    show1Result(X, Y, dev_L, dev_bins, dev_ab, 30, last_path)
 
    
-    X = train_L
-    Y = train_ab
+    # X = train_L
+    # Y = train_ab
     # showBestResult(X, Y, train_L, train_bins, train_ab, best_path)
     # show5Results(train_L, train_L, train_bins, train_ab, 10, best_path)
-    show1Result(X, Y, train_L, train_bins, train_ab, 0, last_path)
+    # show1Result(X, Y, train_L, train_bins, train_ab, 0, last_path)
 
     
 

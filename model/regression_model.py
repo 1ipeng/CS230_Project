@@ -19,6 +19,8 @@ class regression_8layers_model:
         self.l2_cost = self.compute_l2_cost(self.logits, normalize_Y)
         self.accuracy = - self.cost
 
+        self.check = self.cost
+
     def create_placeholders(self):
         X = tf.placeholder(tf.float32, shape = (None, self.params.image_size, self.params.image_size, 1))
         Y = tf.placeholder(tf.float32, shape = (None, self.params.image_size, self.params.image_size, 2))

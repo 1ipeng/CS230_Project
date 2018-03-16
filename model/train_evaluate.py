@@ -170,13 +170,13 @@ class train_evaluate:
             # predict_probs = np.zeros((m, self.params.image_size, self.params.image_size, self.params.num_bins))
             
             for i in range(m):
-                predict_costs[i], predict_logits[i, :, :, :], check, predict_accuracy[i] = sess.run([cost, logits, model.check, accuracy], feed_dict={model.X: X_test[i:i+1], model.Y: Y_test[i:i+1]})
+                predict_costs[i], predict_logits[i, :, :, :], predict_accuracy[i] = sess.run([cost, logits, accuracy], feed_dict={model.X: X_test[i:i+1], model.Y: Y_test[i:i+1]})
 
             if self.model_type == 'classification':
                 predict_bins = np.argmax(predict_logits, axis = -1)
                 predict_bins = predict_bins.reshape(predict_bins.shape[0], predict_bins.shape[1], predict_bins.shape[2], 1)
                 predict_ab = bins2ab(predict_bins)
-                return predict_bins, predict_ab, predict_costs, predict_logits, predict_accuracy, check
+                return predict_bins, predict_ab, predict_costs, predict_logits, predict_accuracy
             else:
                 predict_ab = predict_logits * 255. - 128
-                return predict_ab, predict_costs, predict_logits, predict_accuracy, check
+                return predict_ab, predict_costs, predict_logits, predict_accuracy

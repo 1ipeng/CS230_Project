@@ -35,7 +35,7 @@ if args.train:
 
 def showBestResult(X, Y, dev_L, dev_bins, dev_ab, save_path):
     plt.figure()
-    predict_bins, predict_ab, predict_cost, predict_logits, predict_accuracy, check = train_evaluate.predict(X, Y, save_path)
+    predict_bins, predict_ab, predict_cost, predict_logits, predict_accuracy = train_evaluate.predict(X, Y, save_path)
     index_min = np.argmin(predict_costs)
     plotLabImage(dev_L[index_min], dev_ab[index_min], (2, 1, 1))
     plotLabImage(dev_L[index_min], predict_ab[index_min], (2, 1, 2))
@@ -44,7 +44,7 @@ def showBestResult(X, Y, dev_L, dev_bins, dev_ab, save_path):
 
 def show5Results(X, Y, dev_L, dev_bins, dev_ab, start_index, save_path):
     plt.figure()
-    predict_bins, predict_ab, predict_cost, predict_logits, predict_accuracy, check = train_evaluate.predict(X[start_index:start_index + 5], Y[start_index:start_index + 5], save_path)
+    predict_bins, predict_ab, predict_cost, predict_logits, predict_accuracy = train_evaluate.predict(X[start_index:start_index + 5], Y[start_index:start_index + 5], save_path)
     count = 0
     for i in range(5):
         count = count + 1
@@ -56,7 +56,7 @@ def show5Results(X, Y, dev_L, dev_bins, dev_ab, start_index, save_path):
 
 def show1Result(X, Y, dev_L, dev_bins, dev_ab, start_index, save_path):
     plt.figure()
-    predict_bins, predict_ab, predict_cost, predict_logits, predict_accuracy, check = train_evaluate.predict(X[start_index:start_index + 1], Y[start_index:start_index + 1], save_path)
+    predict_bins, predict_ab, predict_cost, predict_logits, predict_accuracy = train_evaluate.predict(X[start_index:start_index + 1], Y[start_index:start_index + 1], save_path)
     orig_img = plotLabImage(dev_L[start_index], dev_ab[start_index], (1, 3, 1))
     gray_img = plotLabImage(dev_L[start_index], dev_ab[start_index], (1, 3, 2), grayScale = True)
     predict_img = plotLabImage(dev_L[start_index], predict_ab[0], (1, 3, 3))
