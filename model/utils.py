@@ -80,7 +80,7 @@ def save_dict_to_json(d, json_path):
 
 DATA_BINS = "../data/bins_313.npy"
 bin_dict = np.load(DATA_BINS).tolist()
-bins = np.random.randint(0, 50, (2,3,3,1))
+np_bin_dict = np.load(DATA_BINS)
 
 def bins2ab(bins):
     m, h, w, c = bins.shape
@@ -90,6 +90,19 @@ def bins2ab(bins):
             for k in range(w):
                 ab[i, j, k, :] = bin_dict[bins[i, j, k, 0]]
     return ab
+
+def annealed_mean(logits, T):
+    temp = np.exp(logits / T)
+    s = np.sum(temp, axis = -1, keepdims = True)
+    annealed_prob = temp / s
+    a = np.array(np_bin_dict[:, 0])
+    b = np.array(np_bin_dict[:, 1])
+    annealed_mean = np.zeros((annealed_prob.shape[0], annealed_prob.shape[1], annealed_prob.shape[2], 2))
+    annealed_mean_a = np.sum(a.reshape(1, 1, 1, -1) * annealed_prob, axis = -1)
+    annealed_mean_b = np.sum(b.reshape(1, 1, 1, -1) * annealed_prob, axis = -1)
+    annealed_mean[:,:,:, 0] = annealed_mean_a
+    annealed_mean[:,:,:, 1] = annealed_mean_b
+    return annealed_mean
 
 def ab2bins(ab):
     vfun = np.vectorize(lambda a, b: bin_dict.index([a // bin_size * bin_size, b // bin_size * bin_size]))

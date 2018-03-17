@@ -12,5 +12,7 @@
     
     "image_size": 32,
     "reg_constant": 0.0,
-    "num_bins": 313
+    "num_bins": 313,
+
+    "annealed_T": 0.32
 }

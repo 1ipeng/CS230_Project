@@ -1,12 +1,12 @@
 import sys
-from utils import Params, plotLabImage
-from main_utils import argument_parser, load_training_set, load_dev_test_set
-import matplotlib.pyplot as plt
+from main_utils import argument_parser, load_training_set, load_dev_test_set, show5Results, show1Result, showBestResult
 import os
 from classification_model_L2 import classification_8layers_model
 from train_evaluate import train_evaluate
 from transfer_learning_model import transfer_learning_model
 import numpy as np
+from utils import Params
+import matplotlib.pyplot as plt
 
 args = argument_parser(sys.argv)
 
@@ -31,51 +31,18 @@ if args.train:
 	else:
 	    train_evaluate.train(train_L, train_bins, dev_L, dev_bins, model_dir)
 
-# Show result
-def showBestResult(X, Y, dev_L, dev_bins, dev_ab, save_path):
-    plt.figure()
-    predict_bins, predict_ab, predict_costs, predict_logits, predict_accuracy = train_evaluate.predict(X, Y, save_path)
-    index_min = np.argmin(predict_costs)
-    plotLabImage(dev_L[index_min], dev_ab[index_min], (2, 1, 1))
-    plotLabImage(dev_L[index_min], predict_ab[index_min], (2, 1, 2))
-    print(predict_costs[index_min])
-    plt.show()
-
-def show5Results(X, Y, dev_L, dev_bins, dev_ab, start_index, save_path):
-    plt.figure()
-    predict_bins, predict_ab, predict_costs, predict_logits, predict_accuracy = train_evaluate.predict(X[start_index:start_index + 5], Y[start_index:start_index + 5], save_path)
-    count = 0
-    for i in range(5):
-        count = count + 1
-        orig_img = plotLabImage(dev_L[start_index + i], dev_ab[start_index + i], (5, 2, count))
-        count = count + 1
-        predict_img = plotLabImage(dev_L[start_index + i], predict_ab[i], (5, 2, count))
-    print(predict_costs)
-    plt.show()
-
-def show1Result(X, Y, dev_L, dev_bins, dev_ab, start_index, save_path):
-    plt.figure()
-    predict_bins, predict_ab, predict_cost, predict_logits, predict_accuracy = train_evaluate.predict(X[start_index:start_index + 1], Y[start_index:start_index + 1], save_path)
-    orig_img = plotLabImage(dev_L[start_index], dev_ab[start_index], (1, 3, 1))
-    gray_img = plotLabImage(dev_L[start_index], dev_ab[start_index], (1, 3, 2), grayScale = True)
-    predict_img = plotLabImage(dev_L[start_index], predict_ab[0], (1, 3, 3))
-
-    # print(predict_bins[:,0,:,:])
-    # print(dev_bins[:,0,:,:])
-    # print(predict_logits[:,0,0,:])
-    print("cost:", predict_cost)
-    print("accuracy:", predict_accuracy)
-    plt.show()
-
 if args.predict:
     # X = dev_L
     # Y = dev_bins
-    # showBestResult(X, Y, dev_L, dev_bins, dev_ab, best_path)
-    # show5Results(X, Y, dev_L, dev_bins, dev_ab, 20, last_path)
-    # show1Result(X, Y, dev_L, dev_bins, dev_ab, 20, last_path)
+    # showBestResult(train_evaluate, X, Y, dev_L, dev_bins, dev_ab, best_path)
+    # show5Results(train_evaluate, X, Y, dev_L, dev_bins, dev_ab, 20, last_path)
+    # show1Result(train_evaluate, X, Y, dev_L, dev_bins, dev_ab, 20, last_path)
 
     X = train_L
     Y = train_bins
-    # showBestResult(X, Y, train_L, train_bins, train_ab, best_path)
-    show5Results(X, Y, train_L, train_bins, train_ab, 20, last_path)
-    # show1Result(X, Y, train_L, train_bins, train_ab, 99, last_path)
+    # showBestResult(train_evaluate, X, Y, train_L, train_bins, train_ab, best_path)
+    show5Results(train_evaluate, X, Y, train_L, train_bins, train_ab, 20, last_path)
+    plt.figure()
+    show5Results(train_evaluate, X, Y, train_L, train_bins, train_ab, 20, last_path, annealed = True, annealed_T = 0.89)
+    # show1Result(train_evaluate, X, Y, train_L, train_bins, train_ab, 99, last_path)
+    plt.show()

@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-from utils import bins2ab, random_mini_batches
+from utils import bins2ab, random_mini_batches, annealed_mean
 import os
 
 class train_evaluate:
@@ -147,7 +147,7 @@ class train_evaluate:
 
         return minibatch_cost, minibatch_accuracy
 
-    def predict(self, X_test, Y_test, restore_from):
+    def predict(self, X_test, Y_test, restore_from, annealed = False, annealed_T = 0.32):
         # Make prediction. Used outside a session.
         m = X_test.shape[0]
         model = self.test_model
@@ -163,6 +163,7 @@ class train_evaluate:
 
             predict_costs = np.zeros(m)
             predict_accuracy = np.zeros(m)
+
             if self.model_type == 'classification':
                 predict_logits = np.zeros((m, self.params.image_size, self.params.image_size, self.params.num_bins))
             else:
@@ -173,10 +174,15 @@ class train_evaluate:
                 predict_costs[i], predict_logits[i, :, :, :], predict_accuracy[i] = sess.run([cost, logits, accuracy], feed_dict={model.X: X_test[i:i+1], model.Y: Y_test[i:i+1]})
 
             if self.model_type == 'classification':
-                predict_bins = np.argmax(predict_logits, axis = -1)
-                predict_bins = predict_bins.reshape(predict_bins.shape[0], predict_bins.shape[1], predict_bins.shape[2], 1)
-                predict_ab = bins2ab(predict_bins)
-                return predict_bins, predict_ab, predict_costs, predict_logits, predict_accuracy
+                if annealed:
+                    predict_ab = annealed_mean(predict_logits, annealed_T)
+                else:
+                    predict_bins = np.argmax(predict_logits, axis = -1)
+                    predict_bins = predict_bins.reshape(predict_bins.shape[0], predict_bins.shape[1], predict_bins.shape[2], 1)
+                    predict_ab = bins2ab(predict_bins)
             else:
                 predict_ab = predict_logits * 255. - 128
-                return predict_ab, predict_costs, predict_logits, predict_accuracy
+
+            return predict_ab, predict_costs, predict_logits, predict_accuracy
+
+

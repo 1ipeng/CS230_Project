@@ -1,6 +1,7 @@
 import argparse
 import numpy as np
-
+import matplotlib.pyplot as plt
+from utils import Params, plotLabImage
 
 def argument_parser(argv):
     parser = argparse.ArgumentParser()
@@ -137,5 +138,37 @@ def load_training_dev_test_set(args, dev_size = 2500, seed = None):
     return train_L, train_ab, train_bins, train_grayRGB, dev_L, dev_ab, dev_bins, dev_grayRGB, test_L, test_ab, test_bins, test_grayRGB  
 
 
+# Show result
+def showBestResult(train_evaluate, X, Y, dev_L, dev_bins, dev_ab, save_path, annealed = False, annealed_T = 0.32):
+    predict_ab, predict_costs, predict_logits, predict_accuracy = train_evaluate.predict(X, Y, save_path, annealed, annealed_T)
+    index_min = np.argmin(predict_costs)
+    plotLabImage(dev_L[index_min], dev_ab[index_min], (2, 1, 1))
+    plotLabImage(dev_L[index_min], predict_ab[index_min], (2, 1, 2))
+    print(predict_costs[index_min])
+    # plt.show()
+
+def show5Results(train_evaluate, X, Y, dev_L, dev_bins, dev_ab, start_index, save_path, annealed = False, annealed_T = 0.32):
+    predict_ab, predict_costs, predict_logits, predict_accuracy = train_evaluate.predict(X[start_index:start_index + 5], Y[start_index:start_index + 5], save_path, annealed, annealed_T)
+    count = 0
+    for i in range(5):
+        count = count + 1
+        orig_img = plotLabImage(dev_L[start_index + i], dev_ab[start_index + i], (5, 2, count))
+        count = count + 1
+        predict_img = plotLabImage(dev_L[start_index + i], predict_ab[i], (5, 2, count))
+    print(predict_costs)
+    # plt.show()
+
+def show1Result(train_evaluate, X, Y, dev_L, dev_bins, dev_ab, start_index, save_path, annealed = False, annealed_T = 0.32):
+    predict_ab, predict_cost, predict_logits, predict_accuracy = train_evaluate.predict(X[start_index:start_index + 1], Y[start_index:start_index + 1], save_path, annealed, annealed_T)
+    orig_img = plotLabImage(dev_L[start_index], dev_ab[start_index], (1, 3, 1))
+    gray_img = plotLabImage(dev_L[start_index], dev_ab[start_index], (1, 3, 2), grayScale = True)
+    predict_img = plotLabImage(dev_L[start_index], predict_ab[0], (1, 3, 3))
+
+    # print(predict_bins[:,0,:,:])
+    # print(dev_bins[:,0,:,:])
+    # print(predict_logits[:,0,0,:])
+    print("cost:", predict_cost)
+    print("accuracy:", predict_accuracy)
+    # plt.show()
 
 
