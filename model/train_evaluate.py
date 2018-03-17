@@ -57,11 +57,11 @@ class train_evaluate:
         last_saver = tf.train.Saver(max_to_keep = 1)
         best_saver = tf.train.Saver(max_to_keep = 1)
         with tf.Session() as sess:
-            if self.weights_file is not None:
-                model.load_weights(self.weights_file, sess)
-
             init = tf.global_variables_initializer()
             sess.run(init)
+
+            if (self.weights_file is not None) and (restore_from is None):
+                model.load_weights(self.weights_file, sess)
 
             begin_at_epoch, costs, dev_costs, best_dev_accuracy, dev_accuracies = self.restoreSession(last_saver, sess, restore_from, is_training = True)
             
