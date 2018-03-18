@@ -152,9 +152,11 @@ def show5Results(train_evaluate, X, Y, dev_L, dev_bins, dev_ab, start_index, sav
     count = 0
     for i in range(5):
         count = count + 1
-        orig_img = plotLabImage(dev_L[start_index + i], dev_ab[start_index + i], (5, 2, count))
+        orig_img = plotLabImage(dev_L[start_index + i], dev_ab[start_index + i], (5, 3, count))
         count = count + 1
-        predict_img = plotLabImage(dev_L[start_index + i], predict_ab[i], (5, 2, count))
+        gray_img = plotLabImage(dev_L[start_index + i], dev_ab[start_index + i], (5, 3, count), grayScale = True)
+        count = count + 1
+        predict_img = plotLabImage(dev_L[start_index + i], predict_ab[i], (5, 3, count))
     print(predict_costs)
     # plt.show()
 
@@ -171,4 +173,21 @@ def show1Result(train_evaluate, X, Y, dev_L, dev_bins, dev_ab, start_index, save
     print("accuracy:", predict_accuracy)
     # plt.show()
 
-
+# Show result
+def showBest5Result(train_evaluate, X, Y, dev_L, dev_bins, dev_ab, save_path, annealed = False, annealed_T = 0.32):
+    predict_ab, predict_costs, predict_logits, predict_accuracy = train_evaluate.predict(X, Y, save_path, annealed, annealed_T)
+    index_min = np.argsort(predict_costs)[0:5]
+    predict_ab = predict_ab[index_min]
+    predict_costs = predict_costs[index_min]
+    dev_L = dev_L[index_min]
+    dev_ab = dev_L[index_min]
+    count = 0
+    for i in range(5):
+        count = count + 1
+        orig_img = plotLabImage(dev_L[start_index + i], dev_ab[start_index + i], (5, 3, count))
+        count = count + 1
+        gray_img = plotLabImage(dev_L[start_index + i], dev_ab[start_index + i], (5, 3, count), grayScale = True)
+        count = count + 1
+        predict_img = plotLabImage(dev_L[start_index + i], predict_ab[i], (5, 3, count))
+    print(predict_costs)
+    # plt.show()

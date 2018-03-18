@@ -31,12 +31,12 @@ class transfer_learning_model:
         weights = np.load(weight_file)
         keys = sorted(weights.keys())
         for i, k in enumerate(keys):
-            if i <= 19:
+            if i <= 25:
                 sess.run(self.parameters[i].assign(weights[k]))
         print("weights loading done")
 
     def create_placeholders(self):
-        X = tf.placeholder(tf.float32, shape = (None, self.params.image_size, self.params.image_size, 3))
+        X = tf.placeholder(tf.float32, shape = (None, 224, 224, 3))
         Y = tf.placeholder(tf.int32, shape = (None, self.params.image_size, self.params.image_size, 1))
         return X, Y
 
@@ -201,36 +201,69 @@ class transfer_learning_model:
             out = tf.nn.bias_add(conv, biases)
             self.conv4_3 = tf.nn.relu(out, name=scope)
             self.parameters += [kernel, biases]
-        return self.conv4_3
+            
+        # pool4
+        self.pool4 = tf.nn.max_pool(self.conv4_3,
+                               ksize=[1, 2, 2, 1],
+                               strides=[1, 2, 2, 1],
+                               padding='SAME',
+                               name='pool4')
+
+        # conv5_1
+        with tf.name_scope('conv5_1') as scope:
+            kernel = tf.Variable(tf.truncated_normal([3, 3, 512, 512], dtype=tf.float32,
+                                                     stddev=1e-1), name='weights', trainable=self.params.train_all_variables)
+            conv = tf.nn.conv2d(self.pool4, kernel, [1, 1, 1, 1], padding='SAME')
+            biases = tf.Variable(tf.constant(0.0, shape=[512], dtype=tf.float32),
+                                 trainable=self.params.train_all_variables, name='biases')
+            out = tf.nn.bias_add(conv, biases)
+            self.conv5_1 = tf.nn.relu(out, name=scope)
+            self.parameters += [kernel, biases]
+
+        # conv5_2
+        with tf.name_scope('conv5_2') as scope:
+            kernel = tf.Variable(tf.truncated_normal([3, 3, 512, 512], dtype=tf.float32,
+                                                     stddev=1e-1), name='weights', trainable=self.params.train_all_variables)
+            conv = tf.nn.conv2d(self.conv5_1, kernel, [1, 1, 1, 1], padding='SAME')
+            biases = tf.Variable(tf.constant(0.0, shape=[512], dtype=tf.float32),
+                                 trainable=self.params.train_all_variables, name='biases')
+            out = tf.nn.bias_add(conv, biases)
+            self.conv5_2 = tf.nn.relu(out, name=scope)
+            self.parameters += [kernel, biases]
+
+        # conv5_3
+        with tf.name_scope('conv5_3') as scope:
+            kernel = tf.Variable(tf.truncated_normal([3, 3, 512, 512], dtype=tf.float32,
+                                                     stddev=1e-1), name='weights', trainable=self.params.train_all_variables)
+            conv = tf.nn.conv2d(self.conv5_2, kernel, [1, 1, 1, 1], padding='SAME')
+            biases = tf.Variable(tf.constant(0.0, shape=[512], dtype=tf.float32),
+                                 trainable=self.params.train_all_variables, name='biases')
+            out = tf.nn.bias_add(conv, biases)
+            self.conv5_3 = tf.nn.relu(out, name=scope)
+            self.parameters += [kernel, biases]
+
+        # pool5
+        self.pool5 = tf.nn.max_pool(self.conv5_3,
+                               ksize=[1, 2, 2, 1],
+                               strides=[1, 2, 2, 1],
+                               padding='SAME',
+                               name='pool4')
+
+        return self.pool5
 
     def trainable_convlayers(self, out):
-        channels = [512, 512, 512]
+        for i in range(3):
+            with tf.variable_scope("conv6_" + str(i+1)): 
+                out = tf.layers.conv2d(out, 512, 3, padding='same', strides = (1, 1), kernel_regularizer= tf.contrib.layers.l2_regularizer(self.params.reg_constant))
+                out = tf.nn.relu(out)
+                out = tf.layers.dropout(inputs=out, rate=self.params.dropout_rate, training=self.is_training)
 
-        # For each block, we do: 3x3 conv -> relu -> 3x3 conv -> relu ->( 3x3 conv -> relu )-> batch norm
-        # Number of convs each convolution block (2 or 3)
-        num_convs = [3, 3, 3]
+                if self.params.use_batch_norm:
+                    bn_name = "bn_" + str(i+1)
+                    with tf.variable_scope(bn_name):
+                        out = tf.layers.batch_normalization(out, momentum=self.params.bn_momentum, training=self.is_training)
 
-        # Strides for each conv
-        strides = [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
-       
-        # Dilation for each conv
-        dilation = [2, 2, 1]
-
-        for i, c in enumerate(channels): # exclude layer 8 (deconvolution)
-            for j in range(num_convs[i]):
-                conv_name = "conv_" + str(i+5) + "_" + str(j+1)
-                with tf.variable_scope(conv_name):
-                    s = strides[i][j]
-                    d = dilation[i]
-                    out = tf.layers.conv2d(out, c, 3, padding='same', strides = (s, s), dilation_rate = (d, d), kernel_regularizer= tf.contrib.layers.l2_regularizer(self.params.reg_constant))
-                    out = tf.nn.relu(out)
-                    out = tf.layers.dropout(inputs=out, rate=self.params.dropout_rate, training=self.is_training)
-
-            if self.params.use_batch_norm:
-                bn_name = "bn_" + str(i+5)
-                with tf.variable_scope(bn_name):
-                    out = tf.layers.batch_normalization(out, momentum=self.params.bn_momentum, training=self.is_training)
-
+        out = tf.nn.max_pool(out, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME', name='pool6')
         return out
 
     def deconvlayers(self, out):

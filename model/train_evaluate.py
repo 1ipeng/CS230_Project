@@ -60,8 +60,9 @@ class train_evaluate:
             init = tf.global_variables_initializer()
             sess.run(init)
 
-            if (self.weights_file is not None) and (restore_from is None):
+            if self.weights_file is not None:
                 model.load_weights(self.weights_file, sess)
+                self.test_model.load_weights(self.weights_file, sess)
 
             begin_at_epoch, costs, dev_costs, best_dev_accuracy, dev_accuracies = self.restoreSession(last_saver, sess, restore_from, is_training = True)
             
@@ -159,6 +160,10 @@ class train_evaluate:
         with tf.Session() as sess:
             init = tf.global_variables_initializer()
             sess.run(init)
+
+            if self.weights_file is not None:
+                model.load_weights(self.weights_file, sess)
+                
             self.restoreSession(last_saver, sess, restore_from, False)
 
             predict_costs = np.zeros(m)
