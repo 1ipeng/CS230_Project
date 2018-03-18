@@ -129,7 +129,8 @@ def load_training_dev_test_set(args, dev_size = 5000, seed = None):
     permutation = list(np.random.permutation(m))
     dev_index = permutation[0:dev_size]
     test_index = permutation[dev_size:]
-    train_index = permutation[(dev_size / 2) : (dev_size / 2 + dev_size)]
+    id1 = 
+    train_index = permutation[2500 : 7500]
 
     dev_L = test_dev_L[dev_index]
     dev_ab = test_dev_ab[dev_index]
