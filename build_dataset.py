@@ -89,13 +89,13 @@ def parseImages(filenames, directory, bin_dict, bin_size):
 	np.save(directory + "labels", labels)
 	np.save(directory + "bins", bins_ab)
 	np.save(directory + "grayRGB", grayRGB)
-	return channel_L, channel_ab, labels, bins_ab
+	# return channel_L, channel_ab, labels, bins_ab
 	
 bin_size = 10
 bin_dict = np.load(DATA_BINS).tolist()
-train_L, train_ab, train_labels, train_bins = parseImages(DATA_TRAIN, DIR_TRAIN, bin_dict, bin_size)
+parseImages(DATA_TRAIN, DIR_TRAIN, bin_dict, bin_size)
 superlarge = False
-test_L, test_ab, test_labels, test_bins = parseImages(DATA_TEST, DIR_TEST, bin_dict, bin_size)
+parseImages(DATA_TEST, DIR_TEST, bin_dict, bin_size)
 print("Done building dataset")
 
 '''
