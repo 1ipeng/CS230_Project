@@ -38,8 +38,6 @@ def parseImages(filenames, directory, bin_dict, bin_size):
 	channel_ab = []
 	labels = []
 	bins_ab = []
-	grayRGB = []
-	resized_images = []
 	count = [0]
 	
 	for file in filenames:
@@ -62,16 +60,10 @@ def parseImages(filenames, directory, bin_dict, bin_size):
 				ab = Lab[:, :, 1:3]
 				bins = ab2bins(ab[:, :, 0], ab[:, :, 1])
 				bins = bins.reshape(bins.shape[0], bins.shape[1], 1)
-
-				resized_image = imresize(img, (224, 224))
-				gray = color.grey2rgb(color.rgb2grey(resized_image))
-
 				channel_L.append(L)
 				channel_ab.append(ab)
 				labels.append(batch_labels[i])
 				bins_ab.append(bins)
-				grayRGB.append(gray)
-				resized_images.append(resized_image)
 				count[0] += 1
 				print(count[0])
 
@@ -90,8 +82,6 @@ def parseImages(filenames, directory, bin_dict, bin_size):
 	np.save(directory + "ab", channel_ab)
 	np.save(directory + "labels", labels)
 	np.save(directory + "bins", bins_ab)
-	np.save(directory + "grayRGB", grayRGB)
-	np.save(directory + "resized_images", resized_images)
 	return channel_L, channel_ab, labels, bins_ab
 	
 bin_size = 10
