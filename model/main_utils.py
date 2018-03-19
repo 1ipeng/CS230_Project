@@ -1,7 +1,7 @@
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
-from utils import Params, plotLabImage
+from utils import Params, plotLabImage, saveLabImage
 
 def argument_parser(argv):
     parser = argparse.ArgumentParser()
@@ -50,14 +50,20 @@ def load_training_set(args, size = None, seed = None):
     train_L = np.load(DIR_TRAIN + "L.npy")
     train_ab = np.load(DIR_TRAIN + "ab.npy")
     train_bins = np.load(DIR_TRAIN + "bins.npy")
-    train_grayRGB = np.load(DIR_TRAIN + "grayRGB.npy")
+    if args.transfer:
+        train_grayRGB = np.load(DIR_TRAIN + "grayRGB.npy")
+    else:
+        train_grayRGB = None
 
     m = train_L.shape[0]
     permutation = list(np.random.permutation(m))
     train_L = train_L[permutation[0:size]]
     train_ab = train_ab[permutation[0:size]]
     train_bins = train_bins[permutation[0:size]]
-    train_grayRGB = train_grayRGB[permutation[0:size]]
+    if args.transfer:
+        train_grayRGB = train_grayRGB[permutation[0:size]]
+    else:
+        train_grayRGB = None
 
     return train_L, train_ab, train_bins, train_grayRGB 
 
@@ -82,7 +88,10 @@ def load_dev_test_set(args, dev_size = None, seed = None):
     test_dev_L = np.load(DIR_TEST + "L.npy")
     test_dev_ab = np.load(DIR_TEST + "ab.npy")
     test_dev_bins = np.load(DIR_TEST + "bins.npy")
-    test_dev_grayRGB = np.load(DIR_TEST + "grayRGB.npy")
+    if args.transfer:
+        test_dev_grayRGB = np.load(DIR_TEST + "grayRGB.npy")
+    else:
+        test_dev_grayRGB = None
 
     m = test_dev_L.shape[0]
     permutation = list(np.random.permutation(m))
@@ -93,12 +102,19 @@ def load_dev_test_set(args, dev_size = None, seed = None):
     dev_L = test_dev_L[dev_index]
     dev_ab = test_dev_ab[dev_index]
     dev_bins = test_dev_bins[dev_index]
-    dev_grayRGB = test_dev_grayRGB[dev_index]
+    if args.transfer:
+        dev_grayRGB = test_dev_grayRGB[dev_index]
+    else:
+        dev_grayRGB = None
 
     test_L = test_dev_L[test_index]
     test_ab = test_dev_ab[test_index]
     test_bins = test_dev_bins[test_index]
-    test_grayRGB = test_dev_grayRGB[test_index]
+    if args.transfer:
+        test_grayRGB = test_dev_grayRGB[test_index]
+    else:
+        test_grayRGB = None
+
     return dev_L, dev_ab, dev_bins, dev_grayRGB, test_L, test_ab, test_bins, test_grayRGB  
 
 
@@ -212,20 +228,33 @@ def showBest5Result(train_evaluate, X, Y, dev_L, dev_bins, dev_ab, save_path, an
     print(predict_costs)
 
 
-def show5Comparison(train_evaluate, X, Y, dev_L, dev_bins, dev_ab, save_path, annealed = False, annealed_T = 0.32):
+def show5Comparison(train_evaluate, X, Y, dev_L, dev_bins, dev_ab, save_path, annealed = False, annealed_T = 0.32, save_dir = None):
     predict_ab, predict_costs, predict_logits, predict_accuracy = train_evaluate.predict(X, Y, save_path)
     annealed_predict_ab, annealed_predict_costs, annealed_predict_logits, annealed_predict_accuracy = train_evaluate.predict(X, Y, save_path, annealed, annealed_T)
     count = 0
     for i in range(5):
         count = count + 1
         gray_img = plotLabImage(dev_L[i], dev_ab[i], (5, 4, count), grayScale = True)
+        if save_dir is not None:
+            saveLabImage(dev_L[i], dev_ab[i], save_dir + "gray_" + str(i), grayScale = True, size = 224)
+        
         count = count + 1
         predict_img = plotLabImage(dev_L[i], predict_ab[i], (5, 4, count))
+        if save_dir is not None:
+            saveLabImage(dev_L[i], predict_ab[i], save_dir + "color_" + str(i), size = 224)
+
         count = count + 1
         annealed_img = plotLabImage(dev_L[i], annealed_predict_ab[i], (5, 4, count))
+        if save_dir is not None:
+            saveLabImage(dev_L[i], annealed_predict_ab[i], save_dir + "annealed_color_" + str(i), size = 224)
+
         count = count + 1
         orig_img = plotLabImage(dev_L[i], dev_ab[i], (5, 4, count))
+        if save_dir is not None:
+            saveLabImage(dev_L[i], dev_ab[i], save_dir + "ground_truth_" + str(i), size = 224)
+
     print(predict_costs)
+
 
 
 
