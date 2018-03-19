@@ -6,6 +6,8 @@ import numpy as np
 from skimage import color
 import matplotlib.pyplot as plt
 import math
+from scipy.misc import imresize
+
 class Params():
     """Class that loads hyperparameters from a json file.
 
@@ -118,9 +120,20 @@ def plotLabImage(L, ab, position, grayScale = False):
     if grayScale:
         RGB = color.rgb2gray(RGB)
         plt.imshow(RGB, cmap = "gray")
+        plt.axis("off")
     else:
         plt.imshow(RGB)
+        plt.axis("off")
     return RGB
+
+def saveLabImage(L, ab, save_path, grayScale = False, size = 32):
+    image = np.concatenate((L, ab), axis = -1)
+    RGB = color.lab2rgb(image)
+    RGB = imresize(RGB, (size, size))
+    if grayScale:
+        RGB = color.rgb2gray(RGB)
+    np.save(save_path, RGB)
+
 
 def random_mini_batches(X, Y, mini_batch_size = 64):
     """

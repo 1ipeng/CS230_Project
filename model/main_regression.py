@@ -10,8 +10,8 @@ import numpy as np
 args = argument_parser(sys.argv)
 
 params = Params("../experiments/base_model/params.json")
-train_L, train_ab, train_bins, train_grayRGB = load_training_set(args,seed = 110)
-dev_L, dev_ab, dev_bins, dev_grayRGB, test_L, test_ab, test_bins, test_grayRGB = load_dev_test_set(args, seed = 110)
+train_L, train_ab, train_bins, train_grayRGB = load_training_set(args)
+dev_L, dev_ab, dev_bins, dev_grayRGB, test_L, test_ab, test_bins, test_grayRGB = load_dev_test_set(args)
 
 # Weight directory
 model_dir = "./weights_regression"
