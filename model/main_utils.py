@@ -17,8 +17,7 @@ def argument_parser(argv):
                         action="store_true")
     parser.add_argument("--superlarge", help="train on superlarge dataset",
                         action="store_true")
-    parser.add_argument("--transfer", help="use gray imgage",
-                        action="store_true")
+
     if len(argv) < 2:
         parser.print_usage()
         exit()
@@ -50,20 +49,14 @@ def load_training_set(args, size = None, seed = None):
     train_L = np.load(DIR_TRAIN + "L.npy")
     train_ab = np.load(DIR_TRAIN + "ab.npy")
     train_bins = np.load(DIR_TRAIN + "bins.npy")
-    if args.transfer:
-        train_grayRGB = np.load(DIR_TRAIN + "grayRGB.npy")
-    else:
-        train_grayRGB = None
+    train_grayRGB = np.load(DIR_TRAIN + "grayRGB.npy")
 
     m = train_L.shape[0]
     permutation = list(np.random.permutation(m))
     train_L = train_L[permutation[0:size]]
     train_ab = train_ab[permutation[0:size]]
     train_bins = train_bins[permutation[0:size]]
-    if args.transfer:
-        train_grayRGB = train_grayRGB[permutation[0:size]]
-    else:
-        train_grayRGB = None
+    train_grayRGB = train_grayRGB[permutation[0:size]]
 
     return train_L, train_ab, train_bins, train_grayRGB 
 
@@ -88,10 +81,7 @@ def load_dev_test_set(args, dev_size = None, seed = None):
     test_dev_L = np.load(DIR_TEST + "L.npy")
     test_dev_ab = np.load(DIR_TEST + "ab.npy")
     test_dev_bins = np.load(DIR_TEST + "bins.npy")
-    if args.transfer:
-        test_dev_grayRGB = np.load(DIR_TEST + "grayRGB.npy")
-    else:
-        test_dev_grayRGB = None
+    test_dev_grayRGB = np.load(DIR_TEST + "grayRGB.npy")
 
     m = test_dev_L.shape[0]
     permutation = list(np.random.permutation(m))
@@ -102,18 +92,12 @@ def load_dev_test_set(args, dev_size = None, seed = None):
     dev_L = test_dev_L[dev_index]
     dev_ab = test_dev_ab[dev_index]
     dev_bins = test_dev_bins[dev_index]
-    if args.transfer:
-        dev_grayRGB = test_dev_grayRGB[dev_index]
-    else:
-        dev_grayRGB = None
+    dev_grayRGB = test_dev_grayRGB[dev_index]
 
     test_L = test_dev_L[test_index]
     test_ab = test_dev_ab[test_index]
     test_bins = test_dev_bins[test_index]
-    if args.transfer:
-        test_grayRGB = test_dev_grayRGB[test_index]
-    else:
-        test_grayRGB = None
+    test_grayRGB = test_dev_grayRGB[test_index]
 
     return dev_L, dev_ab, dev_bins, dev_grayRGB, test_L, test_ab, test_bins, test_grayRGB  
 
@@ -128,18 +112,12 @@ def load_training_dev_test_set(args, dev_size = 5000, seed = None):
     train_L = np.load(DIR_TRAIN + "L.npy")
     train_ab = np.load(DIR_TRAIN + "ab.npy")
     train_bins = np.load(DIR_TRAIN + "bins.npy")
-    if args.transfer:
-        train_grayRGB = np.load(DIR_TRAIN + "grayRGB.npy")
-    else:
-        train_grayRGB = None
+    train_grayRGB = np.load(DIR_TRAIN + "grayRGB.npy")
 
     test_dev_L = np.load(DIR_TEST + "L.npy")
     test_dev_ab = np.load(DIR_TEST + "ab.npy")
     test_dev_bins = np.load(DIR_TEST + "bins.npy")
-    if args.transfer:
-        test_dev_grayRGB = np.load(DIR_TEST + "grayRGB.npy")
-    else:
-        test_dev_grayRGB = None
+    test_dev_grayRGB = np.load(DIR_TEST + "grayRGB.npy")
 
     m = test_dev_L.shape[0]
     permutation = list(np.random.permutation(m))
@@ -150,26 +128,18 @@ def load_training_dev_test_set(args, dev_size = 5000, seed = None):
     dev_L = test_dev_L[dev_index]
     dev_ab = test_dev_ab[dev_index]
     dev_bins = test_dev_bins[dev_index]
-    if args.transfer:
-        dev_grayRGB = test_dev_grayRGB[dev_index]
-    else:
-        dev_grayRGB = None
+    dev_grayRGB = test_dev_grayRGB[dev_index]
 
     test_L = test_dev_L[test_index]
     test_ab = test_dev_ab[test_index]
     test_bins = test_dev_bins[test_index]
-    if args.transfer:
-        test_grayRGB = test_dev_grayRGB[test_index]
-    else:
-        test_grayRGB = None
+    test_grayRGB = test_dev_grayRGB[test_index]
+
 
     train_L = np.concatenate((train_L, test_dev_L[train_index]), axis=0)
     train_ab = np.concatenate((train_ab, test_dev_ab[train_index]), axis=0)
     train_bins = np.concatenate((train_bins, test_dev_bins[train_index]), axis=0)
-    if args.transfer:
-        train_grayRGB = np.concatenate((train_grayRGB, test_dev_grayRGB[train_index]), axis=0)
-    else:
-        train_grayRGB = None
+    train_grayRGB = np.concatenate((train_grayRGB, test_dev_grayRGB[train_index]), axis=0)
 
     return train_L, train_ab, train_bins, train_grayRGB, dev_L, dev_ab, dev_bins, dev_grayRGB, test_L, test_ab, test_bins, test_grayRGB  
 

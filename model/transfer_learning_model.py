@@ -36,7 +36,7 @@ class transfer_learning_model:
         print("weights loading done")
 
     def create_placeholders(self):
-        X = tf.placeholder(tf.float32, shape = (None, 224, 224, 3))
+        X = tf.placeholder(tf.float32, shape = (None, self.params.image_size, self.params.image_size, 3))
         Y = tf.placeholder(tf.int32, shape = (None, self.params.image_size, self.params.image_size, 1))
         return X, Y
 
@@ -52,6 +52,7 @@ class transfer_learning_model:
         return cost
 
     def normalize(self, X):
+        X = tf.image.resize_images(X, [224, 224])
         '''
         mean = tf.constant([123.68, 116.779, 103.939], dtype=tf.float32, shape=[1, 1, 1, 3], name='img_mean')
         X = X - mean

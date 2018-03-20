@@ -6,6 +6,7 @@ from classification_model_L2 import classification_8layers_model
 from train_evaluate import train_evaluate
 from transfer_learning_model import transfer_learning_model
 import numpy as np
+import matplotlib.pyplot as plt
 
 args = argument_parser(sys.argv)
 
@@ -43,4 +44,5 @@ if args.predict:
     Y = train_bins
     # showBestResult(train_evaluate, X, Y, train_L, train_bins, train_ab, best_path)
     # show5Results(train_evaluate, X, Y, train_L, train_bins, train_ab, 10, best_path)
-    show1Result(train_evaluate, X, Y, train_L, train_bins, train_ab, 0, best_path)
+    show1Result(train_evaluate, X, Y, train_L, train_bins, train_ab, 0, last_path)
+    plt.show()
