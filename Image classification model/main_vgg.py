@@ -10,7 +10,7 @@ args = argument_parser(sys.argv)
 
 # Load data
 # 50,000/5,000/5,000
-params = Params("../experiments/base_model/params.json")
+params = Params("../experiments/base_model/image_classification_params.json")
 train_resized_images, train_labels = load_training_set(args)
 dev_resized_images, dev_labels, test_resized_images, test_labels = load_dev_test_set(args)
 
