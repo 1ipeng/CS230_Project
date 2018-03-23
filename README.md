@@ -48,7 +48,7 @@ python model/main_transfer_learning.py --train [--toy if use toy dataset]
 ```
 To train image classification model, run
 ```
-python Image_colorization_model/main_vgg.py --train [--toy if use toy dataset]
+python image_colorization_model/main_vgg.py --train [--toy if use toy dataset]
 ```
 
 
@@ -64,5 +64,5 @@ python main_classification.py --predict [--toy if use toy dataset]
 python main_transfer_learning.py --predict [--toy if use toy dataset]
 ```
 ```
-python Image_colorization_model/main_vgg.py --predict [--toy if use toy dataset]
+python image_colorization_model/main_vgg.py --predict [--toy if use toy dataset]
 ```
