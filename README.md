@@ -1,6 +1,6 @@
 # CS230_Project
 
-## Step 1: Build dataset.
+## Build Dataset
 Download CIFAR-10 dataset from [here](https://www.cs.toronto.edu/~kriz/cifar.html).
 
 Once the download is complte, move the dataset into data/cifar-10-batches-py. Run the script build_dataset.py, which will output the data we need for this project.
@@ -16,7 +16,7 @@ python build_dataset.py small
 For running transfer learning model, the weights file (vgg16_weights.npz) can be downloaded from [here](http://www.cs.toronto.edu/~frossard/post/vgg16/).
 Once the download is complte, move the weights into model/vgg16_weights.npz
 
-## Step 2: Train data. 
+## Quick Start
 ### 1. Choose hyperparameter.
 Change the hyperparameter in experiments/base_model/params.json.
 ### 2. Train your experiment. 
