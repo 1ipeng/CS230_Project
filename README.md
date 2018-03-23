@@ -4,11 +4,12 @@
 Download CIFAR-10 dataset from [here](https://www.cs.toronto.edu/~kriz/cifar.html).
 
 Once the download is complte, move the dataset into data/cifar-10-batches-py. Run the script build_dataset.py, which will output the data we need for this project.
-### To build the whole dataset(50000 training examples, 10000 test examples), run
+
+To build the whole dataset(50000 training examples, 10000 test examples), run
 ```
 python build_dataset.py big
 ```
-### To build the toy dataset(500 training examples, 100 test examples), run
+To build the toy dataset(500 training examples, 100 test examples), run
 ```
 python build_dataset.py small
 ```
@@ -31,7 +32,7 @@ To train transfer learning model, run
 ```
 python main_transfer_learning.py --train [--toy if use toy dataset]
 ```
-3. Display the results.
+### 3. Display the results.
 To show results, run 
 ```
 python main_regression.py --predict [--toy if use toy dataset]
