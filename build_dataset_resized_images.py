@@ -1,3 +1,9 @@
+'''
+Build dataset
+Output:
+	resized_image: 224 X 224 RGB image
+'''
+
 import cPickle
 import matplotlib.pyplot as plt
 import numpy as np

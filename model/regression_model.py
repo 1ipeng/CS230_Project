@@ -1,8 +1,7 @@
-# Classification model
+# Regression model
 import tensorflow as tf
 import os
 
-# Define architecture
 class regression_8layers_model:
     def __init__(self, params, is_training=True):
         # params: hyperparameters

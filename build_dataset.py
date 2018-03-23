@@ -1,3 +1,12 @@
+'''
+Build dataset
+Output:
+	L: L channel for each image
+	ab: ab channels for each image
+	bins_ab: bin labels for each image
+	grayRGB: grayscale RGB representation for each image
+'''
+
 import cPickle
 import matplotlib.pyplot as plt
 import numpy as np
@@ -96,24 +105,3 @@ parseImages(DATA_TRAIN, DIR_TRAIN, bin_dict, bin_size)
 superlarge = False
 parseImages(DATA_TEST, DIR_TEST, bin_dict, bin_size)
 print("Done building dataset")
-
-'''
-if small:
-	assert(np.load(DIR_TRAIN + "L.npy").shape == (500, 32 ,32, 1))
-	assert(np.load(DIR_TRAIN + "ab.npy").shape == (500, 32 ,32, 2))
-	assert(np.load(DIR_TRAIN + "labels.npy").shape == (500, 1))
-	assert(np.load(DIR_TRAIN + "bins.npy").shape == (500,32, 32, 1))
-	assert(np.load(DIR_TEST + "L.npy").shape == (100, 32 ,32,1))
-	assert(np.load(DIR_TEST + "ab.npy").shape == (100, 32 ,32,2))
-	assert(np.load(DIR_TEST + "labels.npy").shape == (100, 1))
-	assert(np.load(DIR_TEST + "bins.npy").shape == (100, 32, 32, 1))
-else:
-	assert(np.load(DIR_TRAIN + "L.npy").shape == (50000, 32 ,32, 1))
-	assert(np.load(DIR_TRAIN + "ab.npy").shape == (50000, 32 ,32, 2))
-	assert(np.load(DIR_TRAIN + "labels.npy").shape == (50000, 1))
-	assert(np.load(DIR_TRAIN + "bins.npy").shape == (50000, 32, 32, 1))
-	assert(np.load(DIR_TEST + "L.npy").shape == (10000, 32 ,32, 1))
-	assert(np.load(DIR_TEST + "a.npy").shape == (10000, 32 ,32, 2))
-	assert(np.load(DIR_TEST + "labels.npy").shape == (10000, 1))
-	assert(np.load(DIR_TEST + "bins.npy").shape == (10000,32, 32, 1))
-'''

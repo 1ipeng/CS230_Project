@@ -1,3 +1,5 @@
+# Helper functions for main functions
+
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
@@ -101,49 +103,6 @@ def load_dev_test_set(args, dev_size = None, seed = None):
 
     return dev_L, dev_ab, dev_bins, dev_grayRGB, test_L, test_ab, test_bins, test_grayRGB  
 
-
-def load_training_dev_test_set(args, dev_size = 5000, seed = None):
-    DIR_TRAIN = "../data/lab_result/train_lab/"
-    DIR_TEST = "../data/lab_result/test_lab/"
-
-    if seed is not None:
-        np.random.seed(seed)
-
-    train_L = np.load(DIR_TRAIN + "L.npy")
-    train_ab = np.load(DIR_TRAIN + "ab.npy")
-    train_bins = np.load(DIR_TRAIN + "bins.npy")
-    train_grayRGB = np.load(DIR_TRAIN + "grayRGB.npy")
-
-    test_dev_L = np.load(DIR_TEST + "L.npy")
-    test_dev_ab = np.load(DIR_TEST + "ab.npy")
-    test_dev_bins = np.load(DIR_TEST + "bins.npy")
-    test_dev_grayRGB = np.load(DIR_TEST + "grayRGB.npy")
-
-    m = test_dev_L.shape[0]
-    permutation = list(np.random.permutation(m))
-    dev_index = permutation[0:dev_size]
-    test_index = permutation[dev_size:]
-    train_index = permutation[2500 : 7500]
-
-    dev_L = test_dev_L[dev_index]
-    dev_ab = test_dev_ab[dev_index]
-    dev_bins = test_dev_bins[dev_index]
-    dev_grayRGB = test_dev_grayRGB[dev_index]
-
-    test_L = test_dev_L[test_index]
-    test_ab = test_dev_ab[test_index]
-    test_bins = test_dev_bins[test_index]
-    test_grayRGB = test_dev_grayRGB[test_index]
-
-
-    train_L = np.concatenate((train_L, test_dev_L[train_index]), axis=0)
-    train_ab = np.concatenate((train_ab, test_dev_ab[train_index]), axis=0)
-    train_bins = np.concatenate((train_bins, test_dev_bins[train_index]), axis=0)
-    train_grayRGB = np.concatenate((train_grayRGB, test_dev_grayRGB[train_index]), axis=0)
-
-    return train_L, train_ab, train_bins, train_grayRGB, dev_L, dev_ab, dev_bins, dev_grayRGB, test_L, test_ab, test_bins, test_grayRGB  
-
-
 # Show result
 def showBestResult(train_evaluate, X, Y, dev_L, dev_bins, dev_ab, save_path, annealed = False, annealed_T = 0.32):
     predict_ab, predict_costs, predict_logits, predict_accuracy = train_evaluate.predict(X, Y, save_path, annealed, annealed_T)
@@ -224,8 +183,3 @@ def show5Comparison(train_evaluate, X, Y, dev_L, dev_bins, dev_ab, save_path, an
             saveLabImage(dev_L[i], dev_ab[i], save_dir + "ground_truth_" + str(i), size = 224)
 
     print(predict_costs)
-
-
-
-
-
