@@ -17,8 +17,8 @@ For running transfer learning model, the weights file (vgg16_weights.npz) can be
 Once the download is complte, move the weights into model/vgg16_weights.npz
 
 ## Quick Start
-### 1. Choose hyperparameter.
-Change the hyperparameter in experiments/base_model/params.json.
+### 1. Choose hyperparameters.
+Change the hyperparameters in experiments/base_model/params.json.
 ### 2. Train your experiment. 
 To train regression model, run
 ```
